@@ -1,7 +1,8 @@
 #include "globalincludes.h"
+#include "PBDMain.h"
 
-#define TEST_EIGEN
-#define TEST_PARTIO
+//#define TEST_EIGEN
+//#define TEST_PARTIO
 
 void checkIfEigenWorks() {
     MatrixXd m(2,2);
@@ -11,9 +12,7 @@ void checkIfEigenWorks() {
     m(1,1) = m(1,0) + m(0,1);
     std::cout << m << std::endl;
 
-    std::cout << "<<<< EIGEN LOADED SUCCESSFULLY >>>> " << std::endl;
-
-
+    std::cout << "<<<< OK EIGEN LOADED SUCCESSFULLY >>>> " << std::endl;
 }
 
 template <class T, int dim>
@@ -41,7 +40,7 @@ void checkIfPartioWorks() {
     Partio::write(particleFile.c_str(), *parts);
     parts->release();
 
-    std::cout << "<<<< PARTIO LOADED SUCCESSFULLY >>>> " << std::endl;
+    std::cout << "<<<< OK PARTIO LOADED SUCCESSFULLY >>>> " << std::endl;
 
 }
 
@@ -57,4 +56,7 @@ int main()
     checkIfPartioWorks<float, 3>();
 #endif
 
+  PBDMain peepSim;
+  peepSim.initialize();
+  peepSim.solve();
 }

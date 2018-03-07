@@ -8,8 +8,16 @@ if(CREATE_LOCAL_MAKEFILES)
 endif()
 
 add_cispba_executable(src main.cpp
-        globalincludes.h)
-        
+        globalincludes.h
+        components/Agents.h
+        components/Agents.cpp
+        integrator/BaseIntegrator.h
+        integrator/BaseIntegrator.cpp
+        integrator/ExpIntegrator.h
+        integrator/ExpIntegrator.cpp
+        PBDMain.h
+        PBDMain.cpp)
+
 target_include_directories(src SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
 
 # this flag will help to make it faster - @anantha
