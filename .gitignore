@@ -36,7 +36,7 @@ CMakeCache.txt
 CMakeFiles
 CMakeScripts
 Testing
-Makefile
+#Makefile
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json
@@ -48,10 +48,10 @@ cmake-build-debug/*
 .idea/*
 */.idea/*
 
-# Added 20 Feb
+# Added 06 March
 cmake-build-debug/*
 Build/*
 
-example-debug
+
 
 
