@@ -8,7 +8,7 @@ Vector FrictionalConstraint::evaluate(Agent x1, Agent x2) {
   Vector distVec = x1.mCurrPosition - x2.mCurrPosition;
   float minDistance = AGENT_RADIUS + AGENT_RADIUS;
 
-  float constraintValue = (distVec.norm() - (minDistance);
+  float constraintValue = distVec.norm() - minDistance;
 
   Vector delta;
 
