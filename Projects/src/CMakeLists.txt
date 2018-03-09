@@ -11,12 +11,13 @@ add_cispba_executable(src main.cpp
         globalincludes.h
         components/Agents.h
         components/Agents.cpp
+        constraints/Constraint.h
         integrator/BaseIntegrator.h
         integrator/BaseIntegrator.cpp
         integrator/ExpIntegrator.h
         integrator/ExpIntegrator.cpp
-        PBDMain.h
-        PBDMain.cpp)
+        Solver.h
+        Solver.cpp)
 
 target_include_directories(src SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
 

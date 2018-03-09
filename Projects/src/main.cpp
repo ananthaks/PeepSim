@@ -1,8 +1,8 @@
 #include "globalincludes.h"
-#include "PBDMain.h"
+#include "Solver.h"
 
-//#define TEST_EIGEN
-//#define TEST_PARTIO
+#define TEST_EIGEN
+#define TEST_PARTIO
 
 void checkIfEigenWorks() {
     MatrixXd m(2,2);
@@ -56,7 +56,7 @@ int main()
     checkIfPartioWorks<float, 3>();
 #endif
 
-  PBDMain peepSim;
+  Solver peepSim;
   peepSim.initialize();
   peepSim.solve();
 }

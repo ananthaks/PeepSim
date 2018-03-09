@@ -4,7 +4,7 @@
 #include "components/Agents.h"
 #include "integrator/ExpIntegrator.h"
 
-class PBDMain {
+class Solver {
 
 private:
   Agents mAgents;
@@ -12,7 +12,7 @@ private:
 
 public:
 
-  PBDMain();
+  Solver();
 
   void initialize();
 

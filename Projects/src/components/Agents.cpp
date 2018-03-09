@@ -8,6 +8,10 @@ void Agents::setMass(float mass) {
   mMass = mass;
 }
 
+int Agents::getNumAgents() const {
+  return mNumAgents;
+}
+
 Agent<T, dim>& Agents::getAgent(unsigned int index) {
   return mAgents[index];
 }

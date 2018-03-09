@@ -31,7 +31,7 @@
 *.out
 *.app
 
-# Cmake 
+# Cmake
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
@@ -51,7 +51,6 @@ cmake-build-debug/*
 # Added 06 March
 cmake-build-debug/*
 Build/*
-
-
-
-
+output
+*/output/*
+test.bgeo

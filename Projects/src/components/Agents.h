@@ -9,13 +9,13 @@ struct Agent {
   Matrix<T, dim, 1> mStartPosition;
   Matrix<T, dim, 1> mTargetPosition;
 
-  Matrix<T, dim, 1> mCurrPosition;
-  Matrix<T, dim, 1> mProposedPosition;
+  Matrix<T, dim, 1> mCurrPosition; // xn
+  Matrix<T, dim, 1> mProposedPosition; // x*
 
-  Matrix<T, dim, 1> mCurrVelocity;
-  Matrix<T, dim, 1> mPlannerVelocity;
+  Matrix<T, dim, 1> mCurrVelocity; // vn
+  Matrix<T, dim, 1> mPlannerVelocity; // vp
 
-  Matrix<T, dim, 1> mForce;
+  Matrix<T, dim, 1> mForce; // f
 
 };
 
@@ -31,6 +31,8 @@ public:
   Agents(int numAgents);
 
   void setMass(float mass);
+
+  int getNumAgents() const;
 
   Agent<T, dim>& getAgent(unsigned int index);
 
