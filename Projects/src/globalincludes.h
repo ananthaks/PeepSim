@@ -23,3 +23,4 @@ constexpr float TIME_STEP = 1.f / FRAMES_PER_SECOND;
 constexpr float VELOCITY_BLEND = 0.0385f;
 
 constexpr float AGENT_RADIUS = 0.1f;
+constexpr float AGENT_MASS = 1.0f;
