@@ -2,7 +2,7 @@
 #include "../globalincludes.h"
 
 template <class T, int dim>
-struct Agent {
+struct AgentTemplate {
 
   int mId;
 
@@ -19,12 +19,14 @@ struct Agent {
 
 };
 
+using Agent = AgentTemplate<T, dim>;
+
 class Agents {
 
 private:
   int mNumAgents;
   float mMass;
-  std::vector<Agent<T, dim>> mAgents;
+  std::vector<Agent> mAgents;
 
 public:
 
@@ -34,7 +36,7 @@ public:
 
   int getNumAgents() const;
 
-  Agent<T, dim>& getAgent(unsigned int index);
+  Agent& getAgent(unsigned int index);
 
   void addAgent(const Matrix<T, dim, 1> &startPos, const Matrix<T, dim, 1> &target,
                 const Matrix<T, dim, 1> &plannedVelocity);

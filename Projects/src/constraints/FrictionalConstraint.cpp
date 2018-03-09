@@ -1,9 +1,10 @@
 #include "FrictionalConstraint.h"
 
+#include "components/Agents.h"
 
 FrictionalConstraint::FrictionalConstraint() : Constraint() {
 }
 
-Vector3d FrictionalConstraint::evaluate() {
-  return Vector3d(0, 0, 0);
+Vector2f FrictionalConstraint::evaluate(Agent x1, Agent x2) {
+  return Vector2f(0, 0, 0);
 }

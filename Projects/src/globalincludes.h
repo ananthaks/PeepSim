@@ -9,7 +9,7 @@
 
 using Eigen::MatrixXd;
 using Eigen::Matrix;
-using Eigen::Vector3d;
+using Eigen::Vector2f;
 
 using T = float;
 const int dim = 2;

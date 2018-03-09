@@ -12,13 +12,13 @@ int Agents::getNumAgents() const {
   return mNumAgents;
 }
 
-Agent<T, dim>& Agents::getAgent(unsigned int index) {
+Agent& Agents::getAgent(unsigned int index) {
   return mAgents[index];
 }
 
 void Agents::addAgent(const Matrix<T, dim, 1> &startPos, const Matrix<T, dim, 1> &target, const Matrix<T, dim, 1> &plannedVelocity) {
 
-  Agent<T, dim> agent;
+  Agent agent;
   agent.mStartPosition = Matrix<T, dim, 1>(startPos);
   agent.mTargetPosition = Matrix<T, dim, 1>(target);
   agent.mCurrPosition = Matrix<T, dim, 1>(startPos);

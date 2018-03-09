@@ -24,7 +24,7 @@ void Solver::solve() {
     // Step 1: Calculate Proposed positions
     for(int i = 0; i < mAgents.getNumAgents(); ++i) {
 
-      Agent<T, dim> &agent = mAgents.getAgent(i);
+      Agent& agent = mAgents.getAgent(i);
 
       Matrix<T, dim, 1> velocityBlend = (1.f - VELOCITY_BLEND) * agent.mCurrVelocity + VELOCITY_BLEND * agent.mPlannerVelocity;
       agent.mProposedPosition = agent.mCurrPosition + TIME_STEP * velocityBlend;
