@@ -1,8 +1,10 @@
 #pragma once
 
+#include "../globalincludes.h"
+
 class Constraint {
 
-public:
-  Constraint();
-  virtual evaluate() = 0;
-}
+  public:
+    Constraint();
+    virtual Vector3d evaluate() = 0;
+};

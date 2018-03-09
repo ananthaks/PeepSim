@@ -3,6 +3,7 @@
 #include "globalincludes.h"
 #include "components/Agents.h"
 #include "integrator/ExpIntegrator.h"
+#include "constraints/FrictionalConstraint.h"
 
 class Solver {
 

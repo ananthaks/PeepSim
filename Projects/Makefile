@@ -7,11 +7,11 @@
 SHELL := /bin/bash
 RM    := rm -rf
 MKDIR := mkdir -p
-BUILDROOT := /home/anantha/Git/PeepSim/Build
+BUILDROOT := /mnt/p/ubuntu/PeepSim/Build
 BUILDDEFAULT := Release
 RELATIVEPATH := Projects
 BUILDDIR = $(BUILDROOT)/$(BUILDDEFAULT)/$(RELATIVEPATH)
-ROOTDIR := /home/anantha/Git/PeepSim
+ROOTDIR := /mnt/p/ubuntu/PeepSim
 BUILDTYPES := Release MinSizeRel Debug Coverage RelWithDebInfo Quick
 OTHERGOALS := $(filter-out distclean $(BUILDTYPES),$(MAKECMDGOALS))
 
