@@ -10,7 +10,7 @@ Vector FrictionalConstraint::evaluate(Agent x1, Agent x2) {
 
   float constraintValue = distVec.norm() - minDistance;
 
-  Vector delta;
+  Vector delta = Vector::Zero();
 
   if (constraintValue < 0) {
     // Need to apply Constraint to reach minDistance length between x1 & x2.
