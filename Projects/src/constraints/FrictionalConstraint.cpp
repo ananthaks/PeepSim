@@ -5,6 +5,6 @@
 FrictionalConstraint::FrictionalConstraint() : Constraint() {
 }
 
-Vector2f FrictionalConstraint::evaluate(Agent x1, Agent x2) {
-  return Vector2f(0, 0, 0);
+Vector2 FrictionalConstraint::evaluate(Agent x1, Agent x2) {
+  return Vector2() << 0, 0;
 }

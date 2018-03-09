@@ -6,13 +6,13 @@
 #include "Eigen/Core"
 #include "Partio.h"
 
-
 using Eigen::MatrixXd;
 using Eigen::Matrix;
-using Eigen::Vector2f;
 
 using T = float;
 const int dim = 2;
+
+using Vector2 = Matrix<T, dim, 1>;
 
 const int NUM_AGENTS = 50;
 

@@ -7,5 +7,5 @@ class FrictionalConstraint : public Constraint {
 
   public:
     FrictionalConstraint();
-    Vector2f evaluate(Agent x1, Agent x2) override;
+    Vector2 evaluate(Agent x1, Agent x2) override;
 };
