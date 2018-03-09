@@ -12,7 +12,7 @@ using Eigen::Matrix;
 using T = float;
 const int dim = 2;
 
-using Vector2 = Matrix<T, dim, 1>;
+using Vector = Matrix<T, dim, 1>;
 
 const int NUM_AGENTS = 50;
 
