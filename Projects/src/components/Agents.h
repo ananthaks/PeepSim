@@ -14,6 +14,7 @@ struct AgentTemplate {
 
   Matrix<T, dim, 1> mCurrVelocity; // vn
   Matrix<T, dim, 1> mPlannerVelocity; // vp
+  Matrix<T, dim, 1> mBlendedVelocity; // vb
 
   Matrix<T, dim, 1> mForce; // f
 

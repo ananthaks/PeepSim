@@ -14,6 +14,7 @@ add_cispba_executable(src main.cpp
         constraints/Constraint.h
         constraints/FrictionalConstraint.h
         constraints/FrictionalConstraint.cpp
+        constraints/CollisionAvoidanceConstraint.cpp
         constraints/Constraint.cpp
         integrator/BaseIntegrator.h
         integrator/BaseIntegrator.cpp
