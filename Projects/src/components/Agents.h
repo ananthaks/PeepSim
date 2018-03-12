@@ -6,17 +6,20 @@ struct AgentTemplate {
 
   int mId;
 
-  Matrix<T, dim, 1> mStartPosition;
-  Matrix<T, dim, 1> mTargetPosition;
+  T mMass;
+  T mRadius;
 
-  Matrix<T, dim, 1> mCurrPosition; // xn
-  Matrix<T, dim, 1> mProposedPosition; // x*
+  Vector mStartPosition;
+  Vector mTargetPosition;
 
-  Matrix<T, dim, 1> mCurrVelocity; // vn
-  Matrix<T, dim, 1> mPlannerVelocity; // vp
-  Matrix<T, dim, 1> mBlendedVelocity; // vb
+  Vector mCurrPosition; // xn
+  Vector mProposedPosition; // x*
 
-  Matrix<T, dim, 1> mForce; // f
+  Vector mCurrVelocity; // vn
+  Vector mPlannerVelocity; // vp
+  Vector mBlendedVelocity; // vb
+
+  Vector mForce; // f
 
 };
 
@@ -39,8 +42,8 @@ public:
 
   Agent& getAgent(unsigned int index);
 
-  void addAgent(const Matrix<T, dim, 1> &startPos, const Matrix<T, dim, 1> &target,
-                const Matrix<T, dim, 1> &plannedVelocity);
+  void addAgent(const Vector &startPos, const Vector &target,
+                const Vector &plannedVelocity);
 
   void outputFrame(unsigned int frameId);
 

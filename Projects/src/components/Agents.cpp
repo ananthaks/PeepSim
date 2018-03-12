@@ -16,14 +16,14 @@ Agent& Agents::getAgent(unsigned int index) {
   return mAgents[index];
 }
 
-void Agents::addAgent(const Matrix<T, dim, 1> &startPos, const Matrix<T, dim, 1> &target, const Matrix<T, dim, 1> &plannedVelocity) {
+void Agents::addAgent(const Vector &startPos, const Vector &target, const Vector &plannedVelocity) {
 
   Agent agent;
-  agent.mStartPosition = Matrix<T, dim, 1>(startPos);
-  agent.mTargetPosition = Matrix<T, dim, 1>(target);
-  agent.mCurrPosition = Matrix<T, dim, 1>(startPos);
-  agent.mCurrVelocity = Matrix<T, dim, 1>::Zero(dim);
-  agent.mForce = Matrix<T, dim, 1>::Zero(dim);
+  agent.mStartPosition = Vector(startPos);
+  agent.mTargetPosition = Vector(target);
+  agent.mCurrPosition = Vector(startPos);
+  agent.mCurrVelocity = Vector::Zero(dim);
+  agent.mForce = Vector::Zero(dim);
 
   mAgents.push_back(agent);
 }

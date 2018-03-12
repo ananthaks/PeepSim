@@ -4,12 +4,15 @@
 #include "components/Agents.h"
 #include "integrator/ExpIntegrator.h"
 #include "constraints/FrictionalConstraint.h"
+#include "constraints/CollisionAvoidanceConstraint.h"
 
 class Solver {
 
 private:
   Agents mAgents;
   ExpIntegrator mExplicitIntegrator;
+  FrictionalConstraint mFrictionalContraint;
+  CollisionAvoidanceConstraint mCollisionAvoidance;
 
 public:
 

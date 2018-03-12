@@ -11,6 +11,8 @@ add_cispba_executable(src main.cpp
         globalincludes.h
         components/Agents.h
         components/Agents.cpp
+        components/Scene.h
+        components/Scene.cpp
         constraints/Constraint.h
         constraints/FrictionalConstraint.h
         constraints/FrictionalConstraint.cpp

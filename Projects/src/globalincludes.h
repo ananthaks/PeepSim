@@ -16,14 +16,21 @@ using Vector = Matrix<T, dim, 1>;
 
 const int NUM_AGENTS = 50;
 
-constexpr float FRAMES_PER_SECOND = 30;
+constexpr float FRAMES_PER_SECOND = 48;
 constexpr float SIMULATION_DURATION = 10;
 constexpr float TIME_STEP = 1.f / FRAMES_PER_SECOND;
 constexpr float TIME_STEP_SQ = TIME_STEP * TIME_STEP;
 
 constexpr float VELOCITY_BLEND = 0.0385f;
+constexpr float MAX_STABILITY_ITERATION = 10;
+constexpr float MAX_ITERATION = 5;
 
 constexpr float AGENT_RADIUS = 0.1f;
 constexpr float AGENT_MASS = 1.0f;
 
 constexpr float CONSTRAINT_CA_MAX_TAU = 20.0f; // Collision Avoidance Max Tau
+
+constexpr float VISCOSITY_H = 7;
+constexpr float VISCOSITY_C = 217;
+
+constexpr float POLY_6_KERNEL = 1.566681471f;

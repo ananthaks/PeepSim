@@ -1,7 +1,7 @@
 #include "Solver.h"
 
-
-Solver::Solver() :  mAgents(Agents(NUM_AGENTS)), mExplicitIntegrator(ExpIntegrator("explicit")) {}
+Solver::Solver() :  mAgents(Agents(NUM_AGENTS)), mExplicitIntegrator(ExpIntegrator("explicit")),
+  mFrictionalContraint(FrictionalConstraint()), mCollisionAvoidance(CollisionAvoidanceConstraint()) {}
 
 void Solver::initialize() {
 
@@ -9,8 +9,18 @@ void Solver::initialize() {
 
   // 2. Initialize constraints
 
+  // Testing
+  for(int i = 0; i < 100000; ++i) {
+    mAgents.addAgent(Vector::Zero(), Vector::Zero(), Vector::Zero());
+  }
+
 }
 
+// Source : https://nccastaff.bournemouth.ac.uk/jmacey/MastersProjects/MSc15/06Burak/BurakErtekinMScThesis.pdf
+inline float W(Vector distance, float h) {
+  float r = distance.norm();
+  return (0.f <= r && r <= h) ? (POLY_6_KERNEL * (pow(h * h -  r * r, 3)) / (pow(h, 9))) : 0.f;
+}
 
 void Solver::solve() {
 
@@ -23,21 +33,59 @@ void Solver::solve() {
 
     // Step 1: Calculate Proposed positions
     for(int i = 0; i < mAgents.getNumAgents(); ++i) {
-
       Agent& agent = mAgents.getAgent(i);
-
-      Matrix<T, dim, 1> velocityBlend = (1.f - VELOCITY_BLEND) * agent.mCurrVelocity + VELOCITY_BLEND * agent.mPlannerVelocity;
-      agent.mProposedPosition = agent.mCurrPosition + TIME_STEP * velocityBlend;
+      agent.mPlannerVelocity = agent.mTargetPosition - agent.mCurrPosition;
+      agent.mBlendedVelocity = (1.f - VELOCITY_BLEND) * agent.mCurrVelocity + VELOCITY_BLEND * agent.mPlannerVelocity;
+      agent.mProposedPosition = agent.mCurrPosition + TIME_STEP * agent.mBlendedVelocity;
     }
 
-    // Step 2: Calculate nearby agents
+    // Step 2: Project Frictional Contact constraints
+    for(int i = 0; i < MAX_STABILITY_ITERATION; ++i) {
+      for(int a = 0; a < mAgents.getNumAgents(); ++a) {
+        for(int b = a + 1; b < mAgents.getNumAgents(); ++b) {
+            Agent& currAgent = mAgents.getAgent(a);
+            Agent& nextAgent = mAgents.getAgent(b);
+            Vector deltaPos = mFrictionalContraint.evaluate(currAgent, nextAgent);
+            currAgent.mProposedPosition = currAgent.mCurrPosition + deltaPos;
+        }
+      }
+    }
 
-    // Step 3: Project constraints
+    // Step 3: Project FC, LRC, AM constraint
+    for(int i = 0; i < MAX_ITERATION; ++i) {
 
-    // Step 4: Correct positions for collision
+      for(int a = 0; a < mAgents.getNumAgents(); ++a) {
+        for(int b = a + 1; b < mAgents.getNumAgents(); ++b) {
+            Agent& currAgent = mAgents.getAgent(a);
+            Agent& nextAgent = mAgents.getAgent(b);
+            Vector deltaPos = mFrictionalContraint.evaluate(currAgent, nextAgent);
+            currAgent.mProposedPosition = currAgent.mCurrPosition + deltaPos;
+        }
+      }
 
-    // Step 5: Damp velocities
+      for(int a = 0; a < mAgents.getNumAgents(); ++a) {
+        for(int b = a + 1; b < mAgents.getNumAgents(); ++b) {
+            Agent& currAgent = mAgents.getAgent(a);
+            Agent& nextAgent = mAgents.getAgent(b);
+            Vector deltaPos = mCollisionAvoidance.evaluate(currAgent, nextAgent);
+            currAgent.mProposedPosition = currAgent.mCurrPosition + deltaPos;
+        }
+      }
+    }
 
+    // Step 4: Update velocity and position
+    for(int i = 0; i < mAgents.getNumAgents(); ++i) {
+      Agent& agent = mAgents.getAgent(i);
+      agent.mCurrVelocity = (agent.mProposedPosition - agent.mCurrPosition) / TIME_STEP;
+      Vector viscosityVel = Vector::Zero();
+      for(int j = 0; j < mAgents.getNumAgents(); ++j) {
+        if(i == j){
+          continue;
+        }
+        viscosityVel += (agent.mCurrVelocity - mAgents.getAgent(j).mCurrVelocity) * W(agent.mCurrPosition - mAgents.getAgent(j).mCurrPosition, VISCOSITY_H);
+      }
+      agent.mCurrVelocity += VISCOSITY_C * viscosityVel;
+      agent.mCurrPosition = agent.mProposedPosition;
+    }
   }
-
 }
