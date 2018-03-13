@@ -1,5 +1,5 @@
 #include "globalincludes.h"
-#include "Solver.h"
+#include "CrowdSim.h"
 
 #define TEST_EIGEN
 #define TEST_PARTIO
@@ -56,7 +56,8 @@ int main()
     checkIfPartioWorks<float, 3>();
 #endif
 
-  Solver peepSim;
-  peepSim.initialize();
-  peepSim.solve();
+    CrowdSim simulator;
+    simulator.loadTestScene();
+    simulator.evaluate();
+    std::cout << "<<<< CROWD SIMULATION FINISHED >>>> " << std::endl;
 }

@@ -3,7 +3,7 @@
 FrictionalConstraint::FrictionalConstraint() : Constraint() {
 }
 
-Vector FrictionalConstraint::evaluate(Agent x1, Agent x2) {
+VectorPair FrictionalConstraint::evaluate(Agent x1, Agent x2) {
   // | x1 - x2 | - (r + r)
   Vector distVec = x1.mCurrPosition - x2.mCurrPosition;
 
@@ -12,7 +12,7 @@ Vector FrictionalConstraint::evaluate(Agent x1, Agent x2) {
 
   float constraintValue = distVec.norm() - minDistance;
 
-  Vector delta = Vector::Zero();
+  VectorPair result = VectorPair(Vector::Zero(), Vector::Zero());
 
   if (constraintValue < 0) {
     // Need to apply Constraint to reach minDistance length between x1 & x2.
@@ -21,8 +21,9 @@ Vector FrictionalConstraint::evaluate(Agent x1, Agent x2) {
     float invWeight2 = 1.0f / AGENT_MASS;
 
     float s = constraintValue / (invWeight1 + invWeight2);
-    delta = (-invWeight1 * s) * n;
+    result.first = (-invWeight1 * s) * n;
+    result.second = (invWeight2 * s) * n;
   }
 
-  return delta;
+  return result;
 }

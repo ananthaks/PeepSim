@@ -1,12 +1,14 @@
 #pragma once
 #include "Agents.h"
 
-class Scene {
+#include <string>
 
-private:
-  Agents mAgents;
-public:
+// Keep it as a Struct so
+// it is just a data container for us.
+struct Scene {
+  using String = std::string;
   Scene();
-  void initialize();
+  void loadFromFile(String filePath);
 
+  Agents mAgents;
 };

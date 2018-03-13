@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <vector>
+#include <utility>
+
 #include "Eigen/Dense"
 #include "Eigen/Core"
 #include "Partio.h"
@@ -13,6 +15,7 @@ using T = float;
 const int dim = 2;
 
 using Vector = Matrix<T, dim, 1>;
+using VectorPair = std::pair<Vector, Vector>;
 
 const int NUM_AGENTS = 50;
 

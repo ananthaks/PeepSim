@@ -4,8 +4,8 @@
 CollisionAvoidanceConstraint::CollisionAvoidanceConstraint() : Constraint() {
 }
 
-Vector CollisionAvoidanceConstraint::evaluate(Agent x1, Agent x2) {
-  Vector delta = Vector::Zero();
+VectorPair CollisionAvoidanceConstraint::evaluate(Agent x1, Agent x2) {
+  VectorPair result = VectorPair(Vector::Zero(), Vector::Zero());
 
   // TODO: Stiffness Constaint?
 
@@ -47,8 +47,9 @@ Vector CollisionAvoidanceConstraint::evaluate(Agent x1, Agent x2) {
     Vector dn = (d.dot(n)) * n;
     Vector dt = d - dn; // Tangential Displacement needed
 
-    delta = dt;
+    result.first = dt;
+    result.second = dt;
   }
 
-  return delta;
+  return result;
 }

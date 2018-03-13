@@ -23,7 +23,8 @@ add_cispba_executable(src main.cpp
         integrator/ExpIntegrator.h
         integrator/ExpIntegrator.cpp
         Solver.h
-        Solver.cpp)
+        Solver.cpp
+        CrowdSim.cpp)
 
 target_include_directories(src SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
 

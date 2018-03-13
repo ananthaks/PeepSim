@@ -2,6 +2,7 @@
 
 #include "globalincludes.h"
 #include "components/Agents.h"
+#include "components/Scene.h"
 #include "integrator/ExpIntegrator.h"
 #include "constraints/FrictionalConstraint.h"
 #include "constraints/CollisionAvoidanceConstraint.h"
@@ -20,6 +21,6 @@ public:
 
   void initialize();
 
-  void solve();
+  void solve(Scene scene);
 
 };
