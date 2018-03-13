@@ -10,7 +10,6 @@
 class Solver {
 
 private:
-  Agents mAgents;
   ExpIntegrator mExplicitIntegrator;
   FrictionalConstraint mFrictionalContraint;
   CollisionAvoidanceConstraint mCollisionAvoidance;
@@ -21,6 +20,6 @@ public:
 
   void initialize();
 
-  void solve(Scene scene);
+  void solve(Scene &scene);
 
 };

@@ -25,6 +25,7 @@ constexpr float TIME_STEP = 1.f / FRAMES_PER_SECOND;
 constexpr float TIME_STEP_SQ = TIME_STEP * TIME_STEP;
 
 constexpr float VELOCITY_BLEND = 0.0385f;
+constexpr float MAX_VELOCITY = 2.f;
 constexpr float MAX_STABILITY_ITERATION = 10;
 constexpr float MAX_ITERATION = 5;
 

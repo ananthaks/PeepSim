@@ -1,19 +1,10 @@
 #include "Solver.h"
 
-Solver::Solver() :  mAgents(Agents(NUM_AGENTS)), mExplicitIntegrator(ExpIntegrator("explicit")),
+Solver::Solver() :  mExplicitIntegrator(ExpIntegrator("explicit")),
   mFrictionalContraint(FrictionalConstraint()), mCollisionAvoidance(CollisionAvoidanceConstraint()) {}
 
 void Solver::initialize() {
-
-  // 1. Initialize each agent
-
-  // 2. Initialize constraints
-
-  // Testing
-  for(int i = 0; i < 100000; ++i) {
-    mAgents.addAgent(Vector::Zero(), Vector::Zero(), Vector::Zero());
-  }
-
+  // Initialize constraints
 }
 
 // Source : https://nccastaff.bournemouth.ac.uk/jmacey/MastersProjects/MSc15/06Burak/BurakErtekinMScThesis.pdf
@@ -22,8 +13,9 @@ inline float W(Vector distance, float h) {
   return (0.f <= r && r <= h) ? (POLY_6_KERNEL * (pow(h * h -  r * r, 3)) / (pow(h, 9))) : 0.f;
 }
 
-void Solver::solve(Scene scene) {
-  // TODO: Use this scene when we have loaded scene via CrowdSim class
+void Solver::solve(Scene &scene) {
+
+  Agents mAgents = scene.mAgents;
 
   int numIterations = FRAMES_PER_SECOND * SIMULATION_DURATION;
 
@@ -39,7 +31,6 @@ void Solver::solve(Scene scene) {
       agent.mBlendedVelocity = (1.f - VELOCITY_BLEND) * agent.mCurrVelocity + VELOCITY_BLEND * agent.mPlannerVelocity;
       agent.mProposedPosition = agent.mCurrPosition + TIME_STEP * agent.mBlendedVelocity;
     }
-
     // Step 2: Project Frictional Contact constraints
 
     // TODO: Optimization: We can compute neighouring Agents for each agent and
@@ -53,11 +44,11 @@ void Solver::solve(Scene scene) {
             Agent& nextAgent = mAgents.getAgent(b);
             VectorPair deltaPos = mFrictionalContraint.evaluate(currAgent, nextAgent);
 
-            // TODO: As per algorithm & discussion, we have to update both
-            // xi and xi* after the first FrictionalConstraint Check
+            currAgent.mProposedPosition = currAgent.mProposedPosition + deltaPos.first;
+            nextAgent.mProposedPosition = nextAgent.mProposedPosition + deltaPos.second;
 
-            currAgent.mProposedPosition = currAgent.mCurrPosition + deltaPos.first;
-            nextAgent.mProposedPosition = nextAgent.mCurrPosition + deltaPos.second;
+            currAgent.mCurrPosition = currAgent.mCurrPosition + deltaPos.first;
+            nextAgent.mCurrPosition = nextAgent.mCurrPosition + deltaPos.second;
         }
       }
     }
@@ -70,8 +61,8 @@ void Solver::solve(Scene scene) {
             Agent& currAgent = mAgents.getAgent(a);
             Agent& nextAgent = mAgents.getAgent(b);
             VectorPair deltaPos = mFrictionalContraint.evaluate(currAgent, nextAgent);
-            currAgent.mProposedPosition = currAgent.mCurrPosition + deltaPos.first;
-            nextAgent.mProposedPosition = nextAgent.mCurrPosition + deltaPos.second;
+            currAgent.mProposedPosition = currAgent.mProposedPosition + deltaPos.first;
+            nextAgent.mProposedPosition = nextAgent.mProposedPosition + deltaPos.second;
         }
       }
 
@@ -80,12 +71,11 @@ void Solver::solve(Scene scene) {
             Agent& currAgent = mAgents.getAgent(a);
             Agent& nextAgent = mAgents.getAgent(b);
             VectorPair deltaPos = mCollisionAvoidance.evaluate(currAgent, nextAgent);
-            currAgent.mProposedPosition = currAgent.mCurrPosition + deltaPos.first;
-            nextAgent.mProposedPosition = nextAgent.mCurrPosition + deltaPos.second;
+            currAgent.mProposedPosition = currAgent.mProposedPosition + deltaPos.first;
+            nextAgent.mProposedPosition = nextAgent.mProposedPosition + deltaPos.second;
         }
       }
     }
-
     // Step 4: Update velocity and position
     for(int i = 0; i < mAgents.getNumAgents(); ++i) {
       Agent& agent = mAgents.getAgent(i);
@@ -98,8 +88,11 @@ void Solver::solve(Scene scene) {
         }
         viscosityVel += (agent.mCurrVelocity - mAgents.getAgent(j).mCurrVelocity) * W(agent.mCurrPosition - mAgents.getAgent(j).mCurrPosition, VISCOSITY_H);
       }
-
       agent.mCurrVelocity += VISCOSITY_C * viscosityVel;
+      float speed = agent.mCurrVelocity.norm();
+      if(speed > MAX_VELOCITY) {
+          agent.mCurrVelocity *= (MAX_VELOCITY / speed);
+      }
       agent.mCurrPosition = agent.mProposedPosition;
     }
   }

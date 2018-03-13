@@ -1,7 +1,7 @@
 #include "Agents.h"
 
 Agents::Agents(int numAgents) : mNumAgents(numAgents), mMass(1.f) {
-  mAgents.resize(numAgents);
+  //mAgents.resize(numAgents);
 }
 
 void Agents::setMass(float mass) {
@@ -9,10 +9,10 @@ void Agents::setMass(float mass) {
 }
 
 int Agents::getNumAgents() const {
-  return mNumAgents;
+  return mAgents.size();
 }
 
-Agent& Agents::getAgent(unsigned int index) {
+Agent& Agents::getAgent(int index) {
   return mAgents[index];
 }
 
@@ -40,16 +40,16 @@ void Agents::outputFrame(unsigned int frameId) {
   posH = parts->addAttribute("position", Partio::VECTOR, 3);
   vH = parts->addAttribute("v", Partio::VECTOR, 3);
 
-  for (int i=0; i < mNumAgents; i++){
+  for (int i=0; i < mAgents.size(); i++){
       int idx = parts->addParticle();
       float* m = parts->dataWrite<float>(mH, idx);
       float* p = parts->dataWrite<float>(posH, idx);
       float* v = parts->dataWrite<float>(vH, idx);
       m[0] = mMass;
-      for (int k = 0; k < 3; k++)
-          p[k] = mAgents[i].mCurrPosition[k];
-      for (int k = 0; k < 3; k++)
-          v[k] = mAgents[i].mCurrVelocity[k];
+      for (int k = 0; k < dim; k++)
+          p[k] = mAgents[i].mCurrPosition(k, 0);
+      for (int k = 0; k < dim; k++)
+          v[k] = mAgents[i].mCurrVelocity(k, 0);
   }
 
   Partio::write(particleFile.c_str(), *parts);

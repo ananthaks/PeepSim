@@ -40,7 +40,7 @@ public:
 
   int getNumAgents() const;
 
-  Agent& getAgent(unsigned int index);
+  Agent& getAgent(int index);
 
   void addAgent(const Vector &startPos, const Vector &target,
                 const Vector &plannedVelocity);
