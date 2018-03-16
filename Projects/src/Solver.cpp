@@ -77,23 +77,37 @@ void Solver::solve(Scene &scene) {
       }
     }
     // Step 4: Update velocity and position
-    for(int i = 0; i < mAgents.getNumAgents(); ++i) {
-      Agent& agent = mAgents.getAgent(i);
-      agent.mCurrVelocity = (agent.mProposedPosition - agent.mCurrPosition) / TIME_STEP;
-      Vector viscosityVel = Vector::Zero();
 
-      for(int j = 0; j < mAgents.getNumAgents(); ++j) {
-        if(i == j){
-          continue;
-        }
-        viscosityVel += (agent.mCurrVelocity - mAgents.getAgent(j).mCurrVelocity) * W(agent.mCurrPosition - mAgents.getAgent(j).mCurrPosition, VISCOSITY_H);
+      std::vector<Vector> viscosityVels;
+
+      for(int i = 0; i < mAgents.getNumAgents(); ++i) {
+          Agent& agent = mAgents.getAgent(i);
+          agent.mCurrVelocity = (agent.mProposedPosition - agent.mCurrPosition) / TIME_STEP;
       }
-      agent.mCurrVelocity += VISCOSITY_C * viscosityVel;
-      float speed = agent.mCurrVelocity.norm();
-      if(speed > MAX_VELOCITY) {
-          agent.mCurrVelocity *= (MAX_VELOCITY / speed);
+
+      for(int i = 0; i < mAgents.getNumAgents(); ++i) {
+          Agent& agent = mAgents.getAgent(i);
+          Vector viscosityVel = Vector::Zero();
+          for(int j = 0; j < mAgents.getNumAgents(); ++j) {
+              if(i == j){
+                  continue;
+              }
+              viscosityVel += (agent.mCurrVelocity - mAgents.getAgent(j).mCurrVelocity) * W(agent.mCurrPosition - mAgents.getAgent(j).mCurrPosition, VISCOSITY_H);
+          }
+          viscosityVels.push_back(viscosityVel);
       }
-      agent.mCurrPosition = agent.mProposedPosition;
-    }
+
+      for(int i = 0; i < mAgents.getNumAgents(); ++i) {
+          Agent& agent = mAgents.getAgent(i);
+
+          agent.mCurrVelocity += VISCOSITY_C * viscosityVels[i];
+          float speed = agent.mCurrVelocity.norm();
+          if(speed > MAX_VELOCITY) {
+              agent.mCurrVelocity *= (MAX_VELOCITY / speed);
+          }
+          agent.mCurrPosition = agent.mProposedPosition;
+      }
+
+
   }
 }
