@@ -19,6 +19,8 @@ using VectorPair = std::pair<Vector, Vector>;
 
 const int NUM_AGENTS = 50;
 
+constexpr float GROUND_Y_POS = 0.f;
+
 constexpr float FRAMES_PER_SECOND = 48;
 constexpr float SIMULATION_DURATION = 10;
 constexpr float TIME_STEP = 1.f / FRAMES_PER_SECOND;

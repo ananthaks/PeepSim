@@ -46,10 +46,15 @@ void Agents::outputFrame(unsigned int frameId) {
       float* p = parts->dataWrite<float>(posH, idx);
       float* v = parts->dataWrite<float>(vH, idx);
       m[0] = mMass;
-      for (int k = 0; k < dim; k++)
-          p[k] = mAgents[i].mCurrPosition(k, 0);
-      for (int k = 0; k < dim; k++)
-          v[k] = mAgents[i].mCurrVelocity(k, 0);
+
+      p[0] = mAgents[i].mCurrPosition(0, 0);
+      p[1] = GROUND_Y_POS;
+      p[2] = mAgents[i].mCurrPosition(1, 0);
+
+      v[0] = mAgents[i].mCurrVelocity(0, 0);
+      v[1] = 0;
+      v[2] = mAgents[i].mCurrVelocity(1, 0);
+
   }
 
   Partio::write(particleFile.c_str(), *parts);
