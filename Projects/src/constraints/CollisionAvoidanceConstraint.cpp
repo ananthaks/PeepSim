@@ -21,7 +21,23 @@ VectorPair CollisionAvoidanceConstraint::evaluate(Agent x1, Agent x2) {
 
   float tau = (b - std::sqrt((b * b) - (a * c))) / a;
 
+  Vector v1 = (x1.mProposedPosition - x1.mCurrPosition) / TIME_STEP;
+  Vector v2 = (x2.mProposedPosition - x2.mCurrPosition) / TIME_STEP;
+
+  Vector v12 = v1 - v2;
+
+  float a2 = v12.squaredNorm();
+  float b2 = -1.0f * (distVec.dot(v12));
+  float c2 = c;
+
+  float tau2 = (b2 - std::sqrt((b2 * b2) - (a2 * c2))) / a2;
+
+  tau = tau2;
+
+  // TODO: remove Experimental code
+
   if (tau > 0 && tau < CONSTRAINT_CA_MAX_TAU) {
+    // std::cout<<"Doing Collision Avoidance: " << tau << " vs " << tau2 << std::endl;
     float tauPrev = TIME_STEP * std::floor(tau / TIME_STEP);
     float tauNext = tauPrev + TIME_STEP;
 
@@ -47,8 +63,11 @@ VectorPair CollisionAvoidanceConstraint::evaluate(Agent x1, Agent x2) {
     Vector dn = (d.dot(n)) * n;
     Vector dt = d - dn; // Tangential Displacement needed
 
-    result.first = dt;
-    result.second = dt;
+    float powVal = (-1.0f * tauPrev * tauPrev) / tau;
+    float stiff = 0.005 * std::exp(powVal);
+
+    result.first = stiff * dt;
+    result.second = stiff * dt;
   }
 
   return result;

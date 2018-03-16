@@ -31,10 +31,8 @@ constexpr float MAX_VELOCITY = 2.f;
 constexpr float MAX_STABILITY_ITERATION = 10;
 constexpr float MAX_ITERATION = 5;
 
-constexpr float AGENT_RADIUS = 0.1f;
+constexpr float AGENT_RADIUS = 0.25f;
 constexpr float AGENT_MASS = 1.0f;
-
-constexpr float CONSTRAINT_CA_MAX_TAU = 20.0f; // Collision Avoidance Max Tau
 
 constexpr float VISCOSITY_H = 7;
 constexpr float VISCOSITY_C = 217;
