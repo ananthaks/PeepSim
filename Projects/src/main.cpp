@@ -57,7 +57,7 @@ int main()
 #endif
 
     CrowdSim simulator;
-    simulator.loadSceneFromFile("scenes/scene_1.json");
+    simulator.loadSceneFromFile("scenes/scene_2.json");
     simulator.evaluate();
     std::cout << "<<<< CROWD SIMULATION FINISHED >>>> " << std::endl;
 }
