@@ -1,0 +1,13 @@
+{
+  "agentGroups": [{
+    "size": [5, 4],
+    "spacing": [1, 1],
+    "startPosition": [5, 1],
+    "relativeTarget": [-15, 0]
+  }, {
+    "size": [5, 4],
+    "spacing": [1, 1],
+    "startPosition": [-10, 0],
+    "relativeTarget": [12, 0]
+  }]
+}

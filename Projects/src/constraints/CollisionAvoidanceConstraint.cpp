@@ -32,11 +32,15 @@ VectorPair CollisionAvoidanceConstraint::evaluate(Agent x1, Agent x2) {
 
   float tau2 = (b2 - std::sqrt((b2 * b2) - (a2 * c2))) / a2;
 
-  tau = tau2;
+  // tau = tau2;
+
+  // std::cout << "TAUS: " << tau << ", " << tau2 << std::endl;
+  tau = std::abs(tau);
 
   // TODO: remove Experimental code
 
   if (tau > 0 && tau < CONSTRAINT_CA_MAX_TAU) {
+
     // std::cout<<"Doing Collision Avoidance: " << tau << " vs " << tau2 << std::endl;
     float tauPrev = TIME_STEP * std::floor(tau / TIME_STEP);
     float tauNext = tauPrev + TIME_STEP;
