@@ -3,6 +3,12 @@
 
 Scene::Scene() : mAgents(Agents(NUM_AGENTS)) {}
 
+Scene::~Scene() {
+  for(auto& collider: mColliders) {
+    delete collider;
+  }
+}
+
 void Scene::loadFromFile(String filePath)
 {
   std::ifstream inputFileStream(filePath);
@@ -47,6 +53,8 @@ void Scene::loadFromFile(String filePath)
       }
     }
     // TODO :: Read in Colliders and fill mColliders
-    
+
+    BoxCollider* box = new BoxCollider(Vector(0.0f, -4.0f), Vector3(1.0f, 8.0f, 1.0f));
+    mColliders.push_back(box);
   }
 }

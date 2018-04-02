@@ -15,6 +15,7 @@ using T = float;
 const int dim = 2;
 
 using Vector = Matrix<T, dim, 1>;
+using Vector3 = Matrix<T, 3, 1>;
 using VectorPair = std::pair<Vector, Vector>;
 
 const int NUM_AGENTS = 50;
@@ -36,5 +37,7 @@ constexpr float AGENT_MASS = 1.0f;
 
 constexpr float VISCOSITY_H = 7;
 constexpr float VISCOSITY_C = 217;
+
+constexpr int COLLISION_MARCH_STEPS = 10000;
 
 constexpr float POLY_6_KERNEL = 1.566681471f;

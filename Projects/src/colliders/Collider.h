@@ -1,5 +1,6 @@
 #pragma once
 #include "../globalincludes.h"
+#include "../components/Agents.h"
 
 class Collider {
 
@@ -19,7 +20,7 @@ public:
 
   ~Collider();
 
-  virtual bool collide(Vector &currPos, Vector &nextPos) = 0;
+  virtual bool collide(const Vector& position, float radius) = 0;
 
   bool isVisible() const;
 

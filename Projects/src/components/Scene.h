@@ -14,8 +14,9 @@ struct Scene {
   using String = std::string;
   using Json = nlohmann::json;
   Scene();
+  ~Scene();
   void loadFromFile(String filePath);
 
   Agents mAgents;
-  std::vector<Collider> mColliders;
+  std::vector<Collider*> mColliders;
 };

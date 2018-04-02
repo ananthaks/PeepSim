@@ -22,6 +22,9 @@ void Solver::solve(Scene &scene) {
 
   for(int frame = 0; frame < numIterations; ++frame) {
 
+    // For Debug:
+    // std::cout << "Processing Frame: " << frame << std::endl;
+
     // Step 0: Write current frame to file
     mAgents.outputFrame(frame);
 
@@ -70,12 +73,6 @@ void Solver::solve(Scene &scene) {
       }
 
       for(int a = 0; a < mAgents.getNumAgents(); ++a) {
-          Agent& currAgent = mAgents.getAgent(a);
-          Vector deltaPos = mColliderConstraint.evaluate(scene, currAgent);
-          currAgent.mProposedPosition = currAgent.mProposedPosition + deltaPos;
-      }
-
-      for(int a = 0; a < mAgents.getNumAgents(); ++a) {
         for(int b = a + 1; b < mAgents.getNumAgents(); ++b) {
             Agent& currAgent = mAgents.getAgent(a);
             Agent& nextAgent = mAgents.getAgent(b);
@@ -84,7 +81,14 @@ void Solver::solve(Scene &scene) {
             nextAgent.mProposedPosition = nextAgent.mProposedPosition + deltaPos.second;
         }
       }
+
+      for(int a = 0; a < mAgents.getNumAgents(); ++a) {
+          Agent& currAgent = mAgents.getAgent(a);
+          Vector deltaPos = mColliderConstraint.evaluate(scene, currAgent);
+          currAgent.mProposedPosition = currAgent.mProposedPosition + deltaPos;
+      }
     }
+
     // Step 4: Update velocity and position
 
       std::vector<Vector> viscosityVels;

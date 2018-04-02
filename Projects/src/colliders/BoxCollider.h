@@ -5,14 +5,14 @@
 class BoxCollider : public Collider {
 
 private:
-  Vector mDimensions; // Length - x, Height - Y, Breadth - Z
+  Vector3 mDimensions; // Length - x, Height - Y, Breadth - Z
 
 public:
 
-  BoxCollider(Vector &origin, Vector &size);
+  BoxCollider(const Vector &origin, const Vector3 &size);
 
   ~BoxCollider();
 
-  bool collide(Vector &currPos, Vector &nextPos) override;
+  bool collide(const Vector& position, float radius) override;
 
 };
