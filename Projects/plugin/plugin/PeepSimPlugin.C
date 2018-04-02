@@ -1,0 +1,269 @@
+
+#include <UT/UT_DSOVersion.h>
+
+#include <UT/UT_Math.h>
+#include <UT/UT_Interrupt.h>
+#include <GU/GU_Detail.h>
+#include <GU/GU_PrimPoly.h>
+#include <GU/GU_PrimSphere.h>
+#include <CH/CH_LocalVariable.h>
+#include <PRM/PRM_Include.h>
+#include <PRM/PRM_SpareData.h>
+#include <OP/OP_Operator.h>
+#include <OP/OP_OperatorTable.h>
+
+
+#include <limits.h>
+#include "PeepSimPlugin.h"
+using namespace HDK_Sample;
+
+///
+/// newSopOperator is the hook that Houdini grabs from this dll
+/// and invokes to register the SOP.  In this case we add ourselves
+/// to the specified operator table.
+///
+void newSopOperator(OP_OperatorTable *table) {
+
+	table->addOperator(
+		new OP_Operator("CrowdSim",			// Internal name
+			"PeepSim",			// UI name
+			PeepSimPlugin::myConstructor,	// How to build the SOP
+			PeepSimPlugin::myTemplateList,	// My parameters
+			0,				// Min # of sources
+			0,				// Max # of sources
+			PeepSimPlugin::myVariables,	// Local variables
+			OP_FLAG_GENERATOR)		// Flag it as generator
+	);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PRM_Name numAgents("num_agents", "Num Agents");
+static PRM_Name filePath("filePath", "File Path");
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static PRM_Default numAgentsDefault(20);
+static PRM_Default filePathDefault(0.0, "");
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+PRM_Template PeepSimPlugin::myTemplateList[] = {
+
+	PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &numAgents, &numAgentsDefault, 0),
+	PRM_Template(PRM_STRING, PRM_Template::PRM_EXPORT_MIN, 1, &filePath, &filePathDefault, 0),
+
+	/////////////////////////////////////////////////////////////////////////////////////////////
+
+	PRM_Template()
+};
+
+// Here's how we define local variables for the SOP.
+enum {
+	VAR_PT,		// Point number of the star
+	VAR_NPT		// Number of points in the star
+};
+
+CH_LocalVariable PeepSimPlugin::myVariables[] = {
+	{ "PT",	VAR_PT, 0 },		// The table provides a mapping
+	{ "NPT",	VAR_NPT, 0 },		// from text string to integer token
+	{ 0, 0, 0 },
+};
+
+bool PeepSimPlugin::evalVariableValue(fpreal &val, int index, int thread)
+{
+	// myCurrPoint will be negative when we're not cooking so only try to
+	// handle the local variables when we have a valid myCurrPoint index.
+	if (myCurrPoint >= 0)
+	{
+		// Note that "gdp" may be null here, so we do the safe thing
+		// and cache values we are interested in.
+		switch (index)
+		{
+		case VAR_PT:
+			val = (fpreal)myCurrPoint;
+			return true;
+		case VAR_NPT:
+			val = (fpreal)myTotalPoints;
+			return true;
+		default:
+			/* do nothing */;
+		}
+	}
+	// Not one of our variables, must delegate to the base class.
+	return SOP_Node::evalVariableValue(val, index, thread);
+}
+
+OP_Node * PeepSimPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
+{
+	return new PeepSimPlugin(net, name, op);
+}
+
+PeepSimPlugin::PeepSimPlugin(OP_Network *net, const char *name, OP_Operator *op) : SOP_Node(net, name, op)
+{
+	myCurrPoint = -1;	// To prevent garbage values from being returned
+}
+
+PeepSimPlugin::~PeepSimPlugin() {}
+
+unsigned PeepSimPlugin::disableParms()
+{
+	return 0;
+}
+
+void PeepSimPlugin::AddAgent(float x, float y, float z) {
+	
+	/*GU_PrimSphereParms   parms(gdp);
+	parms.freq = 10;
+	GEO_Primitive* poly = GU_PrimSphere::build(parms, GEO_PRIMPOLYSOUP);*/
+
+	GU_PrimPoly *poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
+
+	GA_Offset ptoff = poly->getPointOffset(0);
+	UT_Vector3F startPos = UT_Vector3F(x, y, z);
+	gdp->setPos3(ptoff, startPos);
+	poly->appendVertex(ptoff);
+
+	GA_Offset ptoff2 = poly->getPointOffset(1);
+	UT_Vector3F endPos = UT_Vector3F(x, y + 2, z);
+	gdp->setPos3(ptoff2, endPos);
+	poly->appendVertex(ptoff2);
+
+}
+
+
+OP_ERROR PeepSimPlugin::cookMySop(OP_Context &context)
+{
+	fpreal now = context.getTime();
+
+	// Read input from GUI
+	
+	int numAgents;
+	numAgents = NUM_AGENTS(now);
+
+	UT_String filePath;
+	AGENTS_PATH(filePath, now);
+
+	// Process simulation here
+
+	int	divisions;
+	UT_Interrupt *boss;
+
+	float x = 10;
+	float y = 10;
+	float z = 10;
+	
+	if (error() < UT_ERROR_ABORT)
+	{
+		boss = UTgetInterrupt();
+		
+		gdp->clearAndDestroy();
+
+		// Start the interrupt server
+		if (boss->opStart("Simulating Crowds"))
+		{
+				
+
+			GU_PrimPoly *poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
+
+			GA_Offset ptoff = poly->getPointOffset(0);
+			UT_Vector3F startPos = UT_Vector3F(1, 0, 1);
+			gdp->setPos3(ptoff, startPos);
+			poly->appendVertex(ptoff);
+
+			GA_Offset ptoff2 = poly->getPointOffset(1);
+			UT_Vector3F endPos = UT_Vector3F(1, 2, 1);
+			gdp->setPos3(ptoff2, endPos);
+			poly->appendVertex(ptoff2);
+
+
+			// Highlight the star which we have just generated.  This routine
+			// call clears any currently highlighted geometry, and then it
+			// highlights every primitive for this SOP. 
+			select(GU_SPrimitive);
+		}
+
+		// Tell the interrupt server that we've completed. Must do this
+		// regardless of what opStart() returns.
+		boss->opEnd();
+	}
+
+	return error();
+
+	// New
+
+	/*long frame;
+	int initframe;
+	UT_Interrupt *boss;
+	GA_PointGroup *myGroup = 0;
+	fpreal now = context.getTime();
+
+	frame = context.getFrame();
+
+	printf("cookMySop %f \n", now);
+
+	GA_Offset ptoff;
+	fpreal mx = 5;
+	if (lockInputs(context) >= UT_ERROR_ABORT)
+		return error();
+
+	OP_Node::flags().timeDep = 1;   /////////
+
+	initframe = 1;
+
+	if (error() < UT_ERROR_ABORT)
+	{
+		if (!initialized)
+		{
+			boss = UTgetInterrupt();
+			boss->opStart("Initializing");
+			gdp->clearAndDestroy();
+
+			printf("Creating new Geometry\n");
+
+			AddAgent(1, 1, 1);
+
+			GU_PrimPoly *poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
+
+			GA_Offset ptoff = poly->getPointOffset(0);
+			UT_Vector3F startPos = UT_Vector3F(0, 0, 0);
+			gdp->setPos3(ptoff, startPos);
+			poly->appendVertex(ptoff);
+
+			GA_Offset ptoff2 = poly->getPointOffset(1);
+			UT_Vector3F endPos = UT_Vector3F(5, 5, 5);
+			gdp->setPos3(ptoff2, endPos);
+			poly->appendVertex(ptoff2);
+
+
+			duplicateSource(0, context);
+			boss->opEnd();
+
+			initialized = true;
+		}
+
+		else
+		{
+			boss = UTgetInterrupt();
+			boss->opStart("Setting new grid positions");
+
+			printf("Changing selected geometry\n");
+
+			GA_FOR_ALL_GROUP_PTOFF(gdp, myGroup, ptoff)
+			{
+				printf("Changing positions per frame \n");
+				if (boss->opInterrupt())
+					break;
+
+				UT_Vector3 pos = gdp->getPos3(ptoff);
+				pos[1] += mx;
+				gdp->setPos3(ptoff, pos);
+			}
+			boss->opEnd();
+		}
+	}
+
+	unlockInputs();
+	myCurrPoint = -1;
+	return error();*/
+}
