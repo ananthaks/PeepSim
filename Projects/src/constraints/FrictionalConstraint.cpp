@@ -3,7 +3,7 @@
 FrictionalConstraint::FrictionalConstraint() : Constraint() {
 }
 
-VectorPair FrictionalConstraint::evaluate(Agent x1, Agent x2) {
+VectorPair FrictionalConstraint::evaluate(Agent &x1, Agent &x2) {
   // | x1 - x2 | - (r + r)
   Vector distVec = x1.mCurrPosition - x2.mCurrPosition;
 

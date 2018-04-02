@@ -7,30 +7,10 @@ if(CREATE_LOCAL_MAKEFILES)
   configure_file(${CISPBA_SOURCE_DIR}/Scripts/Makefile.in ${CMAKE_CURRENT_SOURCE_DIR}/Makefile @ONLY)
 endif()
 
-add_library( 
-	src
-	STATIC
-	main.cpp
-        globalincludes.h
-        components/Agents.h
-        components/Agents.cpp
-        components/Scene.h
-        components/Scene.cpp
-        constraints/Constraint.h
-        constraints/FrictionalConstraint.h
-        constraints/FrictionalConstraint.cpp
-        constraints/CollisionAvoidanceConstraint.cpp
-        constraints/Constraint.cpp
-        integrator/BaseIntegrator.h
-        integrator/BaseIntegrator.cpp
-        integrator/ExpIntegrator.h
-        integrator/ExpIntegrator.cpp
-        Solver.h
-        Solver.cpp
-        CrowdSim.cpp)
-	
-
-#add_cispba_executable(src main.cpp
+#add_library(
+#	src
+#	STATIC
+#	main.cpp
 #        globalincludes.h
 #        components/Agents.h
 #        components/Agents.cpp
@@ -48,6 +28,32 @@ add_library(
 #        Solver.h
 #        Solver.cpp
 #        CrowdSim.cpp)
+
+
+add_cispba_executable(src main.cpp
+        globalincludes.h
+        components/Agents.h
+        components/Agents.cpp
+        components/Scene.h
+        components/Scene.cpp
+        colliders/Collider.h
+        colliders/Collider.cpp
+        colliders/BoxCollider.h
+        colliders/BoxCollider.cpp
+        constraints/Constraint.h
+        constraints/ColliderConstraint.h
+        constraints/ColliderConstraint.cpp
+        constraints/FrictionalConstraint.h
+        constraints/FrictionalConstraint.cpp
+        constraints/CollisionAvoidanceConstraint.cpp
+        constraints/Constraint.cpp
+        integrator/BaseIntegrator.h
+        integrator/BaseIntegrator.cpp
+        integrator/ExpIntegrator.h
+        integrator/ExpIntegrator.cpp
+        Solver.h
+        Solver.cpp
+        CrowdSim.cpp)
 
 target_include_directories(src SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
 

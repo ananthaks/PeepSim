@@ -4,6 +4,7 @@
 #include <streambuf>
 
 #include "Agents.h"
+#include "../colliders/Collider.h"
 #include "../external/json.hpp"
 
 
@@ -16,4 +17,5 @@ struct Scene {
   void loadFromFile(String filePath);
 
   Agents mAgents;
+  std::vector<Collider> mColliders;
 };

@@ -1,7 +1,8 @@
 #include "Solver.h"
 
 Solver::Solver() :  mExplicitIntegrator(ExpIntegrator("explicit")),
-  mFrictionalContraint(FrictionalConstraint()), mCollisionAvoidance(CollisionAvoidanceConstraint()) {}
+  mFrictionalContraint(FrictionalConstraint()), mCollisionAvoidance(CollisionAvoidanceConstraint()),
+  mColliderConstraint(ColliderConstraint()) {}
 
 void Solver::initialize() {
   // Initialize constraints
@@ -38,6 +39,7 @@ void Solver::solve(Scene &scene) {
     // This will speed up the process.
 
     for(int i = 0; i < MAX_STABILITY_ITERATION; ++i) {
+
       for(int a = 0; a < mAgents.getNumAgents(); ++a) {
         for(int b = a + 1; b < mAgents.getNumAgents(); ++b) {
             Agent& currAgent = mAgents.getAgent(a);
@@ -51,6 +53,7 @@ void Solver::solve(Scene &scene) {
             nextAgent.mCurrPosition = nextAgent.mCurrPosition + deltaPos.second;
         }
       }
+
     }
 
     // Step 3: Project FC, LRC, AM constraint
@@ -64,6 +67,12 @@ void Solver::solve(Scene &scene) {
             currAgent.mProposedPosition = currAgent.mProposedPosition + deltaPos.first;
             nextAgent.mProposedPosition = nextAgent.mProposedPosition + deltaPos.second;
         }
+      }
+
+      for(int a = 0; a < mAgents.getNumAgents(); ++a) {
+          Agent& currAgent = mAgents.getAgent(a);
+          Vector deltaPos = mColliderConstraint.evaluate(scene, currAgent);
+          currAgent.mProposedPosition = currAgent.mProposedPosition + deltaPos;
       }
 
       for(int a = 0; a < mAgents.getNumAgents(); ++a) {

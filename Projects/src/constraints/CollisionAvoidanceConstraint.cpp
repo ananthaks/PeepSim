@@ -4,7 +4,7 @@
 CollisionAvoidanceConstraint::CollisionAvoidanceConstraint() : Constraint() {
 }
 
-VectorPair CollisionAvoidanceConstraint::evaluate(Agent x1, Agent x2) {
+VectorPair CollisionAvoidanceConstraint::evaluate(Agent &x1, Agent &x2) {
   VectorPair result = VectorPair(Vector::Zero(), Vector::Zero());
 
   // TODO: Stiffness Constaint?

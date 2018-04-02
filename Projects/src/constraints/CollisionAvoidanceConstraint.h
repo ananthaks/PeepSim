@@ -9,5 +9,5 @@ class CollisionAvoidanceConstraint : public Constraint {
 
   public:
     CollisionAvoidanceConstraint();
-    VectorPair evaluate(Agent x1, Agent x2) override;
+    VectorPair evaluate(Agent &x1, Agent &x2) override;
 };

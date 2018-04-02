@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "../colliders/BoxCollider.h"
 
 Scene::Scene() : mAgents(Agents(NUM_AGENTS)) {}
 
@@ -45,5 +46,7 @@ void Scene::loadFromFile(String filePath)
         mAgents.addAgent(start, target, Vector::Zero());
       }
     }
+    // TODO :: Read in Colliders and fill mColliders
+    
   }
 }

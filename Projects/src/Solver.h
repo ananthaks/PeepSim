@@ -6,6 +6,7 @@
 #include "integrator/ExpIntegrator.h"
 #include "constraints/FrictionalConstraint.h"
 #include "constraints/CollisionAvoidanceConstraint.h"
+#include "constraints/ColliderConstraint.h"
 
 class Solver {
 
@@ -13,6 +14,7 @@ private:
   ExpIntegrator mExplicitIntegrator;
   FrictionalConstraint mFrictionalContraint;
   CollisionAvoidanceConstraint mCollisionAvoidance;
+  ColliderConstraint mColliderConstraint;
 
 public:
 

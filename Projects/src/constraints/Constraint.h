@@ -7,5 +7,5 @@ class Constraint {
 
   public:
     Constraint();
-    virtual VectorPair evaluate(Agent x1, Agent x2) = 0;
+    virtual VectorPair evaluate(Agent &x1, Agent &x2) = 0;
 };
