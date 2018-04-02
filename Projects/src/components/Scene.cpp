@@ -52,9 +52,20 @@ void Scene::loadFromFile(String filePath)
         mAgents.addAgent(start, target, Vector::Zero());
       }
     }
-    // TODO :: Read in Colliders and fill mColliders
 
-    BoxCollider* box = new BoxCollider(Vector(0.0f, -4.0f), Vector3(1.0f, 8.0f, 1.0f));
-    mColliders.push_back(box);
+    auto colliders = data["colliders"];
+
+    std::string boxKey = "box";
+
+    for (Json::iterator it = colliders.begin(); it != colliders.end(); ++it) {
+      auto collider = *it;
+
+      float origin[2] = { collider["origin"][0].get<float>(), collider["origin"][1].get<float>() };
+      if (collider["type"].get<std::string>() == boxKey) {
+        float dims[3] = { collider["dimensions"][0].get<float>(), collider["dimensions"][1].get<float>(), collider["dimensions"][2].get<float>() };
+        BoxCollider* box = new BoxCollider(Vector(origin[0], origin[1]), Vector3(dims[0], dims[1], dims[2]));
+        mColliders.push_back(box);
+      }
+    }
   }
 }
