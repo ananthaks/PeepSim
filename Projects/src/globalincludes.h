@@ -10,6 +10,7 @@
 
 using Eigen::MatrixXd;
 using Eigen::Matrix;
+using Eigen::MatrixXi;
 
 using T = float;
 const int dim = 2;

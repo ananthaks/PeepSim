@@ -22,6 +22,8 @@ public:
 
   virtual bool collide(const Vector& position, float radius) = 0;
 
+  virtual void fillCollisionSpace(MatrixXi &grid, int width, int height) = 0;
+
   bool isVisible() const;
 
   void setVisible(bool visible);

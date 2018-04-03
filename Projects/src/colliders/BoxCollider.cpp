@@ -31,3 +31,7 @@ bool BoxCollider::collide(const Vector& position, float radius) {
 
   return false;
 }
+
+void BoxCollider::fillCollisionSpace(MatrixXi &grid, int width, int height) {
+
+}

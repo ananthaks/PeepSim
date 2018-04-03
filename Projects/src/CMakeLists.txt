@@ -40,6 +40,10 @@ add_cispba_executable(src main.cpp
         colliders/Collider.cpp
         colliders/BoxCollider.h
         colliders/BoxCollider.cpp
+        pathfinders/PathFinder.h
+        pathfinders/PathFinder.cpp
+        pathfinders/AStarFinder.h
+        pathfinders/AStarFinder.cpp
         constraints/Constraint.h
         constraints/ColliderConstraint.h
         constraints/ColliderConstraint.cpp

@@ -15,4 +15,6 @@ public:
 
   bool collide(const Vector& position, float radius) override;
 
+  void fillCollisionSpace(MatrixXi &grid, int width, int height) override;
+
 };
