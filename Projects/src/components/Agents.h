@@ -21,6 +21,9 @@ struct AgentTemplate {
 
   Vector mForce; // f
 
+  int currTarget;
+  std::vector<Vector> mPlannedPath; // Path to Target
+
 };
 
 using Agent = AgentTemplate<T, dim>;

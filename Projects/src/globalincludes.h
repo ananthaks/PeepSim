@@ -42,3 +42,20 @@ constexpr float VISCOSITY_C = 217;
 constexpr int COLLISION_MARCH_STEPS = 10000;
 
 constexpr float POLY_6_KERNEL = 1.566681471f;
+
+constexpr int PATH_GRID_SIZE = 100;
+
+constexpr float MIN_DIST_TO_TARGET = 0.05f;
+
+struct Cell {
+
+  int posX, posZ;
+  int parentX, parentZ;
+
+  int GCost;
+  int HCost;
+  int FCost;
+
+  bool isClosed;
+  bool isBlocked;
+};

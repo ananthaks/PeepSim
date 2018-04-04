@@ -22,7 +22,7 @@ public:
 
   virtual bool collide(const Vector& position, float radius) = 0;
 
-  virtual void fillCollisionSpace(MatrixXi &grid, int width, int height) = 0;
+  virtual void fillCollisionSpace(Cell (&grid)[PATH_GRID_SIZE][PATH_GRID_SIZE], int width, int height) = 0;
 
   bool isVisible() const;
 

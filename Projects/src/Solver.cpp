@@ -1,11 +1,15 @@
 #include "Solver.h"
 
+#define PATH_FINDER_ON
+
+
 Solver::Solver() :  mExplicitIntegrator(ExpIntegrator("explicit")),
   mFrictionalContraint(FrictionalConstraint()), mCollisionAvoidance(CollisionAvoidanceConstraint()),
-  mColliderConstraint(ColliderConstraint()) {}
+  mColliderConstraint(ColliderConstraint()), mPathFinder(AStarFinder(PATH_GRID_SIZE, PATH_GRID_SIZE)) {}
 
 void Solver::initialize() {
-  // Initialize constraints
+  // Initialize Path finding
+
 }
 
 // Source : https://nccastaff.bournemouth.ac.uk/jmacey/MastersProjects/MSc15/06Burak/BurakErtekinMScThesis.pdf
@@ -17,6 +21,17 @@ inline float W(Vector distance, float h) {
 void Solver::solve(Scene &scene) {
 
   Agents mAgents = scene.mAgents;
+
+#ifdef PATH_FINDER_ON
+    mPathFinder.initialize(scene);
+    for(int i = 0; i < mAgents.getNumAgents(); ++i) {
+      Agent& agent = mAgents.getAgent(i);
+      std::vector<Vector> resultPath;
+      bool result = mPathFinder.getPathToTarget(agent.mCurrPosition, agent.mTargetPosition, resultPath);
+      agent.mPlannedPath = resultPath;
+      agent.currTarget = 0;
+    }
+#endif
 
   int numIterations = FRAMES_PER_SECOND * SIMULATION_DURATION;
 
@@ -31,7 +46,18 @@ void Solver::solve(Scene &scene) {
     // Step 1: Calculate Proposed positions
     for(int i = 0; i < mAgents.getNumAgents(); ++i) {
       Agent& agent = mAgents.getAgent(i);
+
+#ifdef PATH_FINDER_ON
+      Vector target = agent.mPlannedPath[agent.mPlannedPath.size() - agent.currTarget - 1] - agent.mCurrPosition;
+      if(target.norm() < MIN_DIST_TO_TARGET) {
+        agent.currTarget = agent.currTarget + 1;
+        target = agent.mPlannedPath[agent.mPlannedPath.size() - agent.currTarget - 1] - agent.mCurrPosition;
+      }
+      agent.mPlannerVelocity = target - agent.mCurrPosition;
+#else
       agent.mPlannerVelocity = agent.mTargetPosition - agent.mCurrPosition;
+
+#endif
       agent.mBlendedVelocity = (1.f - VELOCITY_BLEND) * agent.mCurrVelocity + VELOCITY_BLEND * agent.mPlannerVelocity;
       agent.mProposedPosition = agent.mCurrPosition + TIME_STEP * agent.mBlendedVelocity;
     }

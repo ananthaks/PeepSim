@@ -32,6 +32,17 @@ bool BoxCollider::collide(const Vector& position, float radius) {
   return false;
 }
 
-void BoxCollider::fillCollisionSpace(MatrixXi &grid, int width, int height) {
+void BoxCollider::fillCollisionSpace(Cell (&grid)[PATH_GRID_SIZE][PATH_GRID_SIZE], int width, int height) {
 
+  float lowX = mOrigin[0] + PATH_GRID_SIZE / 2.f;
+  float lowY = mOrigin[1] + PATH_GRID_SIZE / 2.f;
+
+  float highX = lowX + mDimensions[0];
+  float highY = lowY + mDimensions[1];
+
+  for(int i = lowX; i >=0 && i <= highX && i < PATH_GRID_SIZE; ++i) {
+    for(int j = lowY; j >=0 && j <= highY && j < PATH_GRID_SIZE; ++j) {
+      grid[i][j].isBlocked = true;
+    }
+  }
 }

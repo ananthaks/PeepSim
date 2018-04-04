@@ -1,28 +1,24 @@
 #pragma once
 
+#include "../globalincludes.h"
 #include "PathFinder.h"
-
-struct Cell {
-
-  int posX, posZ;
-  int parentX, parentZ;
-
-  int GCost;
-  int HCost;
-  int FCost;
-
-  bool isClosed;
-
-  Cell();
-
-};
 
 
 class AStarFinder : public PathFinder {
 
+private:
+
+  int mGridWidth;
+  int mGridHeight;
+
+  bool mAllowDiagonal;
+
+  Cell mNodes[PATH_GRID_SIZE][PATH_GRID_SIZE];
+
+
 public:
 
-  AStarFinder(int sceneWidth, int sceneHeight, std::pair<int, int> &resizeFactor);
+  AStarFinder(int sceneWidth, int sceneHeight);
 
   void initialize(Scene &scene) override;
 
