@@ -82,15 +82,15 @@ namespace HDK_Sample {
       return evalFloat("defaultAgentRadius", 0, t);
     }
 
-    fpreal  STABILITYITERATIONS(fpreal t) {
+    int  STABILITYITERATIONS(fpreal t) {
       return evalInt("maxStabilityIterations", 0, t);
     }
 
-    fpreal  MAXITERATIONS(fpreal t) {
+    int  MAXITERATIONS(fpreal t) {
       return evalInt("maxIterations", 0, t);
     }
 
-    fpreal  COLLISIONSTEPS(fpreal t) {
+    int  COLLISIONSTEPS(fpreal t) {
       return evalInt("collisionSteps", 0, t);
     }
 
