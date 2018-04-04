@@ -1,4 +1,3 @@
-
 #include <UT/UT_DSOVersion.h>
 
 #include <UT/UT_Math.h>
@@ -15,6 +14,10 @@
 
 #include <limits.h>
 #include "PeepSimPlugin.h"
+
+
+// #include "../../src/CrowdSim.h"
+
 using namespace HDK_Sample;
 
 ///
@@ -22,248 +25,314 @@ using namespace HDK_Sample;
 /// and invokes to register the SOP.  In this case we add ourselves
 /// to the specified operator table.
 ///
-void newSopOperator(OP_OperatorTable *table) {
+void newSopOperator(OP_OperatorTable* table) {
 
-	table->addOperator(
-		new OP_Operator("CrowdSim",			// Internal name
-			"PeepSim",			// UI name
-			PeepSimPlugin::myConstructor,	// How to build the SOP
-			PeepSimPlugin::myTemplateList,	// My parameters
-			0,				// Min # of sources
-			0,				// Max # of sources
-			PeepSimPlugin::myVariables,	// Local variables
-			OP_FLAG_GENERATOR)		// Flag it as generator
-	);
+  table->addOperator(
+        new OP_Operator("CrowdSim", // Internal name
+                        "PeepSim", // UI name
+                        PeepSimPlugin::myConstructor, // How to build the SOP
+                        PeepSimPlugin::mParameterList, // My parameters
+                        0, // Min # of sources
+                        0, // Max # of sources
+                        PeepSimPlugin::mLocalVariables, // Local variables
+                        OP_FLAG_GENERATOR) // Flag it as generator
+  );
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PRM_Name numAgents("num_agents", "Num Agents");
+
 static PRM_Name filePath("filePath", "File Path");
+static PRM_Name velocityBlendName("velocityBlend", "Velocity Blend");
+static PRM_Name maxVelocityName("maxVelocity", "Max Velocity");
+static PRM_Name maxStabilityIterationsName("maxStabilityIterations", "Max Stability Iterations");
+static PRM_Name maxIterationsName("maxIterations", "Max Iterations");
+static PRM_Name defaultAgentMassName("defaultAgentMass", "Default Agent Mass");
+static PRM_Name defaultAgentRadiusName("defaultAgentRadius", "Default Agent Radius");
+static PRM_Name collisionMarchingStepsName("collisionSteps", "Max Env Collision Steps");
+static PRM_Name generateCommandName("generateCommand", "Generate");
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PRM_Default numAgentsDefault(20);
+
 static PRM_Default filePathDefault(0.0, "");
+static PRM_Default velocityBlendDefault(0.4);
+static PRM_Default maxVelocityDefault(2.0);
+static PRM_Default maxStabilityIterationsDefault(10);
+static PRM_Default maxIterationsDefault(5);
+static PRM_Default defaultAgentMassDefault(1.0);
+static PRM_Default defaultAgentRadiusDefault(0.25);
+static PRM_Default collisionMarchingStepsDefault(1000);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-PRM_Template PeepSimPlugin::myTemplateList[] = {
+PRM_Template PeepSimPlugin::mParameterList[] = {
+  PRM_Template(PRM_STRING, PRM_Template::PRM_EXPORT_MIN, 1, &filePath, &filePathDefault, 0),
+  PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &velocityBlendName, &velocityBlendDefault,
+               0),
+  PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &maxVelocityName, &maxVelocityDefault, 0),
+  PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &maxStabilityIterationsName,
+               &maxStabilityIterationsDefault, 0),
+  PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &maxIterationsName, &maxIterationsDefault,
+               0),
+  PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &defaultAgentMassName,
+               &defaultAgentMassDefault, 0),
+  PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &defaultAgentRadiusName,
+               &defaultAgentRadiusDefault, 0),
+  PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &collisionMarchingStepsName,
+               &collisionMarchingStepsDefault, 0),
 
-	PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &numAgents, &numAgentsDefault, 0),
-	PRM_Template(PRM_STRING, PRM_Template::PRM_EXPORT_MIN, 1, &filePath, &filePathDefault, 0),
+  PRM_Template(PRM_CALLBACK, 1, &generateCommandName, 0, 0, 0, PeepSimPlugin::generateCallback),
 
-	/////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////
 
-	PRM_Template()
+  PRM_Template()
 };
 
 // Here's how we define local variables for the SOP.
 enum {
-	VAR_PT,		// Point number of the star
-	VAR_NPT		// Number of points in the star
+  VAR_PT,
+  // Point number of the star
+  VAR_NPT // Number of points in the star
 };
 
-CH_LocalVariable PeepSimPlugin::myVariables[] = {
-	{ "PT",	VAR_PT, 0 },		// The table provides a mapping
-	{ "NPT",	VAR_NPT, 0 },		// from text string to integer token
-	{ 0, 0, 0 },
+CH_LocalVariable PeepSimPlugin::mLocalVariables[] = {
+  {"PT", VAR_PT, 0}, // The table provides a mapping
+  {"NPT", VAR_NPT, 0}, // from text string to integer token
+  {0, 0, 0},
 };
 
-bool PeepSimPlugin::evalVariableValue(fpreal &val, int index, int thread)
-{
-	// myCurrPoint will be negative when we're not cooking so only try to
-	// handle the local variables when we have a valid myCurrPoint index.
-	if (myCurrPoint >= 0)
-	{
-		// Note that "gdp" may be null here, so we do the safe thing
-		// and cache values we are interested in.
-		switch (index)
-		{
-		case VAR_PT:
-			val = (fpreal)myCurrPoint;
-			return true;
-		case VAR_NPT:
-			val = (fpreal)myTotalPoints;
-			return true;
-		default:
-			/* do nothing */;
-		}
-	}
-	// Not one of our variables, must delegate to the base class.
-	return SOP_Node::evalVariableValue(val, index, thread);
+bool PeepSimPlugin::evalVariableValue(fpreal& val, int index, int thread) {
+  // myCurrPoint will be negative when we're not cooking so only try to
+  // handle the local variables when we have a valid myCurrPoint index.
+  if (myCurrPoint >= 0) {
+    // Note that "gdp" may be null here, so we do the safe thing
+    // and cache values we are interested in.
+    switch (index) {
+      case VAR_PT:
+        val = (fpreal)myCurrPoint;
+        return true;
+
+      case VAR_NPT:
+        val = (fpreal)myTotalPoints;
+        return true;
+
+      default:
+        /* do nothing */
+        ;
+    }
+  }
+
+  // Not one of our variables, must delegate to the base class.
+  return SOP_Node::evalVariableValue(val, index, thread);
 }
 
-OP_Node * PeepSimPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
-{
-	return new PeepSimPlugin(net, name, op);
+OP_Node* PeepSimPlugin::myConstructor(OP_Network* net, const char* name, OP_Operator* op) {
+  return new PeepSimPlugin(net, name, op);
 }
 
-PeepSimPlugin::PeepSimPlugin(OP_Network *net, const char *name, OP_Operator *op) : SOP_Node(net, name, op)
-{
-	myCurrPoint = -1;	// To prevent garbage values from being returned
+int PeepSimPlugin::generateCallback(void* data, int index, float time, const PRM_Template*) {
+  fpreal now = time;
+
+  PeepSimPlugin* me = (PeepSimPlugin*)data;
+
+  me->calledFromCallback = true;
+
+  OP_Context myContext(time);
+  me->startSimulation(myContext);
+
+  return 1;
+}
+
+int HDK_Sample::PeepSimPlugin::startSimulation(OP_Context& context) {
+  fpreal now = context.getTime();
+
+  // Read input from GUI
+
+  float velocityBlend = VELOCITYBLEND(now);
+  float maxVelocity = MAXVELOCITY(now);
+  float defaultAgentMass = DEFAULTAGENTMASS(now);
+  float defaultAgentRadius = DEFAULTAGENTRADIUS(now);
+  int stabilityIterations = STABILITYITERATIONS(now);
+  int maxIterations = MAXITERATIONS(now);
+  int collisionSteps = COLLISIONSTEPS(now);
+
+  return 0;
+}
+
+PeepSimPlugin::PeepSimPlugin(OP_Network* net, const char* name, OP_Operator* op)
+  : SOP_Node(net,
+             name, op) {
+  myCurrPoint = -1; // To prevent garbage values from being returned
 }
 
 PeepSimPlugin::~PeepSimPlugin() {}
 
-unsigned PeepSimPlugin::disableParms()
-{
-	return 0;
+unsigned PeepSimPlugin::disableParms() {
+  return 0;
 }
 
 void PeepSimPlugin::AddAgent(float x, float y, float z) {
-	
-	/*GU_PrimSphereParms   parms(gdp);
-	parms.freq = 10;
-	GEO_Primitive* poly = GU_PrimSphere::build(parms, GEO_PRIMPOLYSOUP);*/
 
-	GU_PrimPoly *poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
+  /*GU_PrimSphereParms   parms(gdp);
+  parms.freq = 10;
+  GEO_Primitive* poly = GU_PrimSphere::build(parms, GEO_PRIMPOLYSOUP);*/
 
-	GA_Offset ptoff = poly->getPointOffset(0);
-	UT_Vector3F startPos = UT_Vector3F(x, y, z);
-	gdp->setPos3(ptoff, startPos);
-	poly->appendVertex(ptoff);
+  GU_PrimPoly* poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
 
-	GA_Offset ptoff2 = poly->getPointOffset(1);
-	UT_Vector3F endPos = UT_Vector3F(x, y + 2, z);
-	gdp->setPos3(ptoff2, endPos);
-	poly->appendVertex(ptoff2);
+  GA_Offset ptoff      = poly->getPointOffset(0);
+  UT_Vector3F startPos = UT_Vector3F(x, y, z);
+  gdp->setPos3(ptoff, startPos);
+  poly->appendVertex(ptoff);
+
+  GA_Offset ptoff2   = poly->getPointOffset(1);
+  UT_Vector3F endPos = UT_Vector3F(x, y + 2, z);
+  gdp->setPos3(ptoff2, endPos);
+  poly->appendVertex(ptoff2);
 
 }
 
 
-OP_ERROR PeepSimPlugin::cookMySop(OP_Context &context)
-{
-	fpreal now = context.getTime();
+OP_ERROR PeepSimPlugin::cookMySop(OP_Context& context) {
+  fpreal now = context.getTime();
 
-	// Read input from GUI
-	
-	int numAgents;
-	numAgents = NUM_AGENTS(now);
+  // Read input from GUI
 
-	UT_String filePath;
-	AGENTS_PATH(filePath, now);
+  int numAgents;
+  numAgents = NUM_AGENTS(now);
 
-	// Process simulation here
+  UT_String filePath;
+  AGENTS_PATH(filePath, now);
 
-	int	divisions;
-	UT_Interrupt *boss;
+  float velocityBlend      = VELOCITYBLEND(now);
+  float maxVelocity        = MAXVELOCITY(now);
+  float defaultAgentMass   = DEFAULTAGENTMASS(now);
+  float defaultAgentRadius = DEFAULTAGENTRADIUS(now);
+  int stabilityIterations  = STABILITYITERATIONS(now);
+  int maxIterations        = MAXITERATIONS(now);
+  int collisionSteps       = COLLISIONSTEPS(now);
 
-	float x = 10;
-	float y = 10;
-	float z = 10;
-	
-	if (error() < UT_ERROR_ABORT)
-	{
-		boss = UTgetInterrupt();
-		
-		gdp->clearAndDestroy();
+  // CrowdSim simulator;
 
-		// Start the interrupt server
-		if (boss->opStart("Simulating Crowds"))
-		{
-				
+  // Process simulation here
 
-			GU_PrimPoly *poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
+  int divisions;
+  UT_Interrupt* boss;
 
-			GA_Offset ptoff = poly->getPointOffset(0);
-			UT_Vector3F startPos = UT_Vector3F(1, 0, 1);
-			gdp->setPos3(ptoff, startPos);
-			poly->appendVertex(ptoff);
+  float x = 10;
+  float y = 10;
+  float z = 10;
 
-			GA_Offset ptoff2 = poly->getPointOffset(1);
-			UT_Vector3F endPos = UT_Vector3F(1, 2, 1);
-			gdp->setPos3(ptoff2, endPos);
-			poly->appendVertex(ptoff2);
+  if (error() < UT_ERROR_ABORT) {
+    boss = UTgetInterrupt();
+
+    gdp->clearAndDestroy();
+
+    // Start the interrupt server
+    if (boss->opStart("Simulating Crowds")) {
 
 
-			// Highlight the star which we have just generated.  This routine
-			// call clears any currently highlighted geometry, and then it
-			// highlights every primitive for this SOP. 
-			select(GU_SPrimitive);
-		}
+      GU_PrimPoly* poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
 
-		// Tell the interrupt server that we've completed. Must do this
-		// regardless of what opStart() returns.
-		boss->opEnd();
-	}
+      GA_Offset ptoff      = poly->getPointOffset(0);
+      UT_Vector3F startPos = UT_Vector3F(1, 0, 1);
+      gdp->setPos3(ptoff, startPos);
+      poly->appendVertex(ptoff);
 
-	return error();
-
-	// New
-
-	/*long frame;
-	int initframe;
-	UT_Interrupt *boss;
-	GA_PointGroup *myGroup = 0;
-	fpreal now = context.getTime();
-
-	frame = context.getFrame();
-
-	printf("cookMySop %f \n", now);
-
-	GA_Offset ptoff;
-	fpreal mx = 5;
-	if (lockInputs(context) >= UT_ERROR_ABORT)
-		return error();
-
-	OP_Node::flags().timeDep = 1;   /////////
-
-	initframe = 1;
-
-	if (error() < UT_ERROR_ABORT)
-	{
-		if (!initialized)
-		{
-			boss = UTgetInterrupt();
-			boss->opStart("Initializing");
-			gdp->clearAndDestroy();
-
-			printf("Creating new Geometry\n");
-
-			AddAgent(1, 1, 1);
-
-			GU_PrimPoly *poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
-
-			GA_Offset ptoff = poly->getPointOffset(0);
-			UT_Vector3F startPos = UT_Vector3F(0, 0, 0);
-			gdp->setPos3(ptoff, startPos);
-			poly->appendVertex(ptoff);
-
-			GA_Offset ptoff2 = poly->getPointOffset(1);
-			UT_Vector3F endPos = UT_Vector3F(5, 5, 5);
-			gdp->setPos3(ptoff2, endPos);
-			poly->appendVertex(ptoff2);
+      GA_Offset ptoff2   = poly->getPointOffset(1);
+      UT_Vector3F endPos = UT_Vector3F(1, 2, 1);
+      gdp->setPos3(ptoff2, endPos);
+      poly->appendVertex(ptoff2);
 
 
-			duplicateSource(0, context);
-			boss->opEnd();
+      // Highlight the star which we have just generated.  This routine
+      // call clears any currently highlighted geometry, and then it
+      // highlights every primitive for this SOP.
+      select(GU_SPrimitive);
+    }
 
-			initialized = true;
-		}
+    // Tell the interrupt server that we've completed. Must do this
+    // regardless of what opStart() returns.
+    boss->opEnd();
+  }
 
-		else
-		{
-			boss = UTgetInterrupt();
-			boss->opStart("Setting new grid positions");
+  return error();
 
-			printf("Changing selected geometry\n");
+  // New
 
-			GA_FOR_ALL_GROUP_PTOFF(gdp, myGroup, ptoff)
-			{
-				printf("Changing positions per frame \n");
-				if (boss->opInterrupt())
-					break;
+  /*long frame;
+  int initframe;
+  UT_Interrupt *boss;
+  GA_PointGroup *myGroup = 0;
+  fpreal now = context.getTime();
 
-				UT_Vector3 pos = gdp->getPos3(ptoff);
-				pos[1] += mx;
-				gdp->setPos3(ptoff, pos);
-			}
-			boss->opEnd();
-		}
-	}
+  frame = context.getFrame();
 
-	unlockInputs();
-	myCurrPoint = -1;
-	return error();*/
+  printf("cookMySop %f \n", now);
+
+  GA_Offset ptoff;
+  fpreal mx = 5;
+  if (lockInputs(context) >= UT_ERROR_ABORT)
+    return error();
+
+  OP_Node::flags().timeDep = 1;   /////////
+
+  initframe = 1;
+
+  if (error() < UT_ERROR_ABORT)
+  {
+    if (!initialized)
+    {
+      boss = UTgetInterrupt();
+      boss->opStart("Initializing");
+      gdp->clearAndDestroy();
+
+      printf("Creating new Geometry\n");
+
+      AddAgent(1, 1, 1);
+
+      GU_PrimPoly *poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
+
+      GA_Offset ptoff = poly->getPointOffset(0);
+      UT_Vector3F startPos = UT_Vector3F(0, 0, 0);
+      gdp->setPos3(ptoff, startPos);
+      poly->appendVertex(ptoff);
+
+      GA_Offset ptoff2 = poly->getPointOffset(1);
+      UT_Vector3F endPos = UT_Vector3F(5, 5, 5);
+      gdp->setPos3(ptoff2, endPos);
+      poly->appendVertex(ptoff2);
+
+
+      duplicateSource(0, context);
+      boss->opEnd();
+
+      initialized = true;
+    }
+
+    else
+    {
+      boss = UTgetInterrupt();
+      boss->opStart("Setting new grid positions");
+
+      printf("Changing selected geometry\n");
+
+      GA_FOR_ALL_GROUP_PTOFF(gdp, myGroup, ptoff)
+      {
+        printf("Changing positions per frame \n");
+        if (boss->opInterrupt())
+          break;
+
+        UT_Vector3 pos = gdp->getPos3(ptoff);
+        pos[1] += mx;
+        gdp->setPos3(ptoff, pos);
+      }
+      boss->opEnd();
+    }
+  }
+
+  unlockInputs();
+  myCurrPoint = -1;
+  return error();*/
 }
