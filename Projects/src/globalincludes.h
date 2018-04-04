@@ -24,11 +24,11 @@ const int NUM_AGENTS = 50;
 constexpr float GROUND_Y_POS = 0.f;
 
 constexpr float FRAMES_PER_SECOND = 48;
-constexpr float SIMULATION_DURATION = 10;
+constexpr float SIMULATION_DURATION = 20;
 constexpr float TIME_STEP = 1.f / FRAMES_PER_SECOND;
 constexpr float TIME_STEP_SQ = TIME_STEP * TIME_STEP;
 
-constexpr float VELOCITY_BLEND = 0.4f;//0.0385f;
+constexpr float VELOCITY_BLEND = 0.8f;//0.0385f;
 constexpr float MAX_VELOCITY = 2.f;
 constexpr float MAX_STABILITY_ITERATION = 10;
 constexpr float MAX_ITERATION = 5;
@@ -45,7 +45,7 @@ constexpr float POLY_6_KERNEL = 1.566681471f;
 
 constexpr int PATH_GRID_SIZE = 100;
 
-constexpr float MIN_DIST_TO_TARGET = 0.05f;
+constexpr float MIN_DIST_TO_TARGET = 0.5f;
 
 struct Cell {
 

@@ -33,6 +33,8 @@ void Solver::solve(Scene &scene) {
     }
 #endif
 
+
+
   int numIterations = FRAMES_PER_SECOND * SIMULATION_DURATION;
 
   for(int frame = 0; frame < numIterations; ++frame) {
@@ -48,12 +50,21 @@ void Solver::solve(Scene &scene) {
       Agent& agent = mAgents.getAgent(i);
 
 #ifdef PATH_FINDER_ON
-      Vector target = agent.mPlannedPath[agent.mPlannedPath.size() - agent.currTarget - 1] - agent.mCurrPosition;
-      if(target.norm() < MIN_DIST_TO_TARGET) {
-        agent.currTarget = agent.currTarget + 1;
-        target = agent.mPlannedPath[agent.mPlannedPath.size() - agent.currTarget - 1] - agent.mCurrPosition;
-      }
-      agent.mPlannerVelocity = target - agent.mCurrPosition;
+        Vector target = agent.mPlannedPath[agent.mPlannedPath.size() - agent.currTarget - 1];
+        Vector dist = target - agent.mCurrPosition;
+
+        if(dist.norm() < MIN_DIST_TO_TARGET) {
+            agent.currTarget = agent.currTarget + 1;
+        }
+
+        if(agent.currTarget < agent.mPlannedPath.size()) {
+            target = agent.mPlannedPath[agent.mPlannedPath.size() - agent.currTarget - 1];
+        } else {
+            target = agent.mTargetPosition;
+        }
+        agent.mPlannerVelocity = target - agent.mCurrPosition;
+
+
 #else
       agent.mPlannerVelocity = agent.mTargetPosition - agent.mCurrPosition;
 
@@ -139,7 +150,7 @@ void Solver::solve(Scene &scene) {
       for(int i = 0; i < mAgents.getNumAgents(); ++i) {
           Agent& agent = mAgents.getAgent(i);
 
-          agent.mCurrVelocity += VISCOSITY_C * viscosityVels[i];
+          //agent.mCurrVelocity += VISCOSITY_C * viscosityVels[i];
           float speed = agent.mCurrVelocity.norm();
           if(speed > MAX_VELOCITY) {
               agent.mCurrVelocity *= (MAX_VELOCITY / speed);
