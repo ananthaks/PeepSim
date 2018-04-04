@@ -15,6 +15,10 @@
 
 #include <limits.h>
 #include "PeepSimPlugin.h"
+
+
+// #include "../../src/CrowdSim.h"
+
 using namespace HDK_Sample;
 
 ///
@@ -162,6 +166,16 @@ OP_ERROR PeepSimPlugin::cookMySop(OP_Context &context)
 
 	UT_String filePath;
 	AGENTS_PATH(filePath, now);
+
+  float velocityBlend = VELOCITYBLEND(now);
+  float maxVelocity = MAXVELOCITY(now);
+  float defaultAgentMass = DEFAULTAGENTMASS(now);
+  float defaultAgentRadius = DEFAULTAGENTRADIUS(now);
+  int stabilityIterations = STABILITYITERATIONS(now);
+  int maxIterations = MAXITERATIONS(now);
+  int collisionSteps = COLLISIONSTEPS(now);
+
+  // CrowdSim simulator;
 
 	// Process simulation here
 

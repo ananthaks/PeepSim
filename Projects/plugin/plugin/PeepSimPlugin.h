@@ -64,6 +64,14 @@ namespace HDK_Sample {
 			evalString(label, "filePath", 0, t);
 		}
 
+    fpreal  VELOCITYBLEND(fpreal t) { return evalFloat("velocityBlend", 0, t); }
+    fpreal  MAXVELOCITY(fpreal t) { return evalFloat("maxVelocity", 0, t); }
+    fpreal  DEFAULTAGENTMASS(fpreal t) { return evalFloat("defaultAgentMass", 0, t); }
+    fpreal  DEFAULTAGENTRADIUS(fpreal t) { return evalFloat("defaultAgentRadius", 0, t); }
+    fpreal  STABILITYITERATIONS(fpreal t) { return evalInt("maxStabilityIterations", 0, t); }
+    fpreal  MAXITERATIONS(fpreal t) { return evalInt("maxIterations", 0, t); }
+    fpreal  COLLISIONSTEPS(fpreal t) { return evalInt("collisionSteps", 0, t); }
+
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		/// Member variables are stored in the actual SOP, not with the geometry
