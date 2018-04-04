@@ -37,21 +37,40 @@ void newSopOperator(OP_OperatorTable *table) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PRM_Name numAgents("num_agents", "Num Agents");
+
 static PRM_Name filePath("filePath", "File Path");
+static PRM_Name		velocityBlendName("velocityBlend", "Velocity Blend");
+static PRM_Name		maxVelocityName("maxVelocity", "Max Velocity");
+static PRM_Name		maxStabilityIterationsName("maxStabilityIterations", "Max Stability Iterations");
+static PRM_Name		maxIterationsName("maxIterations", "Max Iterations");
+static PRM_Name		defaultAgentMassName("defaultAgentMass", "Default Agent Mass");
+static PRM_Name		defaultAgentRadiusName("defaultAgentRadius", "Default Agent Radius");
+static PRM_Name		collisionMarchingStepsName("collisionSteps", "Max Env Collision Steps");
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static PRM_Default numAgentsDefault(20);
+
 static PRM_Default filePathDefault(0.0, "");
+static PRM_Default velocityBlendDefault(0.4);
+static PRM_Default maxVelocityDefault(2.0);
+static PRM_Default maxStabilityIterationsDefault(10);
+static PRM_Default maxIterationsDefault(5);
+static PRM_Default defaultAgentMassDefault(1.0);
+static PRM_Default defaultAgentRadiusDefault(0.25);
+static PRM_Default collisionMarchingStepsDefault(1000);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
 PRM_Template PeepSimPlugin::myTemplateList[] = {
-
-	PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &numAgents, &numAgentsDefault, 0),
 	PRM_Template(PRM_STRING, PRM_Template::PRM_EXPORT_MIN, 1, &filePath, &filePathDefault, 0),
+  PRM_Template(PRM_FLT,	PRM_Template::PRM_EXPORT_MIN, 1, &velocityBlendName, &velocityBlendDefault, 0),
+  PRM_Template(PRM_FLT,	PRM_Template::PRM_EXPORT_MIN, 1, &maxVelocityName, &maxVelocityDefault, 0),
+  PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &maxStabilityIterationsName, &maxStabilityIterationsDefault, 0),
+  PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &maxIterationsName, &maxIterationsDefault, 0),
+  PRM_Template(PRM_FLT,	PRM_Template::PRM_EXPORT_MIN, 1, &defaultAgentMassName, &defaultAgentMassDefault, 0),
+  PRM_Template(PRM_FLT,	PRM_Template::PRM_EXPORT_MIN, 1, &defaultAgentRadiusName, &defaultAgentRadiusDefault, 0),
+  PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &collisionMarchingStepsName, &collisionMarchingStepsDefault, 0),
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 
