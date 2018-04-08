@@ -15,6 +15,8 @@
 #include <limits.h>
 #include "PeepSimPlugin.h"
 
+static float numAgent = 10.0;
+
 
 // #include "../../src/CrowdSim.h"
 
@@ -193,14 +195,68 @@ void PeepSimPlugin::AddAgent(float x, float y, float z) {
 
 }
 
+void PeepSimPlugin::initCrowdSim() {
+	printf("Initing Peep Sim!\n");
+
+	gdp->clearAndDestroy();
+	mAgents.clear();
+
+	//TODO need to check if we need to destory/free the memory of the object we created
+	// I am calling gdp::clearAndDestroy but double check again
+
+	float total = 2 * M_PI;
+
+	for (int i = 0; i < numAgent; ++i) {
+
+		float xPos = 5 * std::cos(i * total / (float) numAgent);
+		float zPos = 5 * std::sin(i * total / (float) numAgent);
+
+		printf("Pos %f %f\n", xPos, zPos);
+
+		GU_PrimSphereParms parms(gdp);
+		parms.freq = 10;
+
+		// Change this to some obj
+		GEO_Primitive *sphere = GU_PrimSphere::build(parms, GEO_PRIMSPHERE);
+
+		sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
+		
+		mAgents.push_back(sphere);
+
+	}
+}
+
+void PeepSimPlugin::update(fpreal frame) {
+	printf("Update for Frame %f \n", frame);
+
+	int period = 360;
+
+	float xPos;
+	float zPos;
+	float angle;
+	float total = 2 * M_PI;
+
+	for (int i = 0; i < mAgents.size(); ++i) {
+
+		GEO_Primitive *sphere = mAgents[i];
+		angle = i * total / (float)numAgent + ((int)(frame) % period) * total / (float)(period);
+
+		xPos = 5 * std::cos(angle);
+		zPos = 5 * std::sin(angle);
+
+		sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
+	}
+}
+
 
 OP_ERROR PeepSimPlugin::cookMySop(OP_Context& context) {
-  fpreal now = context.getTime();
-
+  
+	fpreal now = context.getTime();
+	
   // Read input from GUI
 
   int numAgents;
-  numAgents = NUM_AGENTS(now);
+  numAgents = 10;// NUM_AGENTS(now);
 
   UT_String filePath;
   AGENTS_PATH(filePath, now);
@@ -215,124 +271,37 @@ OP_ERROR PeepSimPlugin::cookMySop(OP_Context& context) {
 
   // CrowdSim simulator;
 
-  // Process simulation here
+  // We must lock our inputs before we try to access their geometry.
+  // OP_AutoLockInputs will automatically unlock our inputs when we return.
+  // NOTE: Don't call unlockInputs yourself when using this!
+  OP_AutoLockInputs inputs(this);
 
-  int divisions;
-  UT_Interrupt* boss;
+  // Check if locking caused an error
+  if (inputs.lock(context) >= UT_ERROR_ABORT)
+	  return error();
 
-  float x = 10;
-  float y = 10;
-  float z = 10;
+  // Now, indicate that we are time dependent (have to cook every time the current frame changes).
+  OP_Node::flags().timeDep = 1;
 
-  if (error() < UT_ERROR_ABORT) {
-    boss = UTgetInterrupt();
+  // Channel manager has time info for us
+  CH_Manager *chman = OPgetDirector()->getChannelManager();
 
-    gdp->clearAndDestroy();
+  // This is the frame that we're cooking at...
+  fpreal currframe = chman->getSample(context.getTime());
 
-    // Start the interrupt server
-    if (boss->opStart("Simulating Crowds")) {
+  // Lets assume that we solve all the frames in the first frame itslef
+  // We can probably do a frame by frame calculation later on
+  fpreal reset = 1; 
 
-
-      GU_PrimPoly* poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
-
-      GA_Offset ptoff      = poly->getPointOffset(0);
-      UT_Vector3F startPos = UT_Vector3F(1, 0, 1);
-      gdp->setPos3(ptoff, startPos);
-      poly->appendVertex(ptoff);
-
-      GA_Offset ptoff2   = poly->getPointOffset(1);
-      UT_Vector3F endPos = UT_Vector3F(1, 2, 1);
-      gdp->setPos3(ptoff2, endPos);
-      poly->appendVertex(ptoff2);
-
-
-      // Highlight the star which we have just generated.  This routine
-      // call clears any currently highlighted geometry, and then it
-      // highlights every primitive for this SOP.
-      select(GU_SPrimitive);
-    }
-
-    // Tell the interrupt server that we've completed. Must do this
-    // regardless of what opStart() returns.
-    boss->opEnd();
+  if (currframe <= reset)
+  {
+	  myLastCookTime = reset;
+	  initCrowdSim();
+  }
+  else
+  {
+	  update(currframe);
   }
 
   return error();
-
-  // New
-
-  /*long frame;
-  int initframe;
-  UT_Interrupt *boss;
-  GA_PointGroup *myGroup = 0;
-  fpreal now = context.getTime();
-
-  frame = context.getFrame();
-
-  printf("cookMySop %f \n", now);
-
-  GA_Offset ptoff;
-  fpreal mx = 5;
-  if (lockInputs(context) >= UT_ERROR_ABORT)
-    return error();
-
-  OP_Node::flags().timeDep = 1;   /////////
-
-  initframe = 1;
-
-  if (error() < UT_ERROR_ABORT)
-  {
-    if (!initialized)
-    {
-      boss = UTgetInterrupt();
-      boss->opStart("Initializing");
-      gdp->clearAndDestroy();
-
-      printf("Creating new Geometry\n");
-
-      AddAgent(1, 1, 1);
-
-      GU_PrimPoly *poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
-
-      GA_Offset ptoff = poly->getPointOffset(0);
-      UT_Vector3F startPos = UT_Vector3F(0, 0, 0);
-      gdp->setPos3(ptoff, startPos);
-      poly->appendVertex(ptoff);
-
-      GA_Offset ptoff2 = poly->getPointOffset(1);
-      UT_Vector3F endPos = UT_Vector3F(5, 5, 5);
-      gdp->setPos3(ptoff2, endPos);
-      poly->appendVertex(ptoff2);
-
-
-      duplicateSource(0, context);
-      boss->opEnd();
-
-      initialized = true;
-    }
-
-    else
-    {
-      boss = UTgetInterrupt();
-      boss->opStart("Setting new grid positions");
-
-      printf("Changing selected geometry\n");
-
-      GA_FOR_ALL_GROUP_PTOFF(gdp, myGroup, ptoff)
-      {
-        printf("Changing positions per frame \n");
-        if (boss->opInterrupt())
-          break;
-
-        UT_Vector3 pos = gdp->getPos3(ptoff);
-        pos[1] += mx;
-        gdp->setPos3(ptoff, pos);
-      }
-      boss->opEnd();
-    }
-  }
-
-  unlockInputs();
-  myCurrPoint = -1;
-  return error();*/
 }

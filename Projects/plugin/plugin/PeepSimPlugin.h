@@ -1,6 +1,12 @@
 #pragma once
 
 #include <SOP/SOP_Node.h>
+#include <OP/OP_AutoLockInputs.h>
+#include <OP/OP_Director.h>
+#include <OP/OP_Operator.h>
+#include <OP/OP_OperatorTable.h>
+
+class GEO_PrimParticle;
 
 namespace HDK_Sample {
 
@@ -51,7 +57,22 @@ namespace HDK_Sample {
 
     void AddAgent(float x, float y, float z);
 
+	void initCrowdSim();
+
+	void update(fpreal frame);
+
    private:
+
+	   std::vector<GEO_Primitive*> mAgents;
+
+
+	   GEO_PrimParticle	*mySystem;
+	   fpreal		 myLastCookTime;	// Last cooked time
+
+	   int   myCurrPoint;
+	   int   myTotalPoints;
+
+
     /// The following list of accessors simplify evaluating the parameters
     /// of the SOP.
 
@@ -94,15 +115,6 @@ namespace HDK_Sample {
       return evalInt("collisionSteps", 0, t);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /// Member variables are stored in the actual SOP, not with the geometry
-    /// In this case these are just used to transfer data to the local
-    /// variable callback.
-    /// Another use for local data is a cache to store expensive calculations.
-
-    // NOTE : You can declare local variables here like this
-    int   myCurrPoint;
-    int   myTotalPoints;
+	
   };
-} // End HDK_Sample namespace
+} 
