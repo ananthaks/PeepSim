@@ -13,7 +13,10 @@
 struct Scene {
   using String = std::string;
   using Json = nlohmann::json;
-  Scene();
+
+  const PeepSimConfig& mConfig;
+
+  Scene(const PeepSimConfig& config);
   ~Scene();
   void loadFromFile(String filePath);
 

@@ -56,7 +56,10 @@ int main()
     checkIfPartioWorks<float, 3>();
 #endif
 
-    CrowdSim simulator;
+    PeepSimConfig config;
+    config.create();
+
+    CrowdSim simulator = CrowdSim(config);
     simulator.loadSceneFromFile("scenes/scene_4.json");
     simulator.evaluate();
     std::cout << "<<<< CROWD SIMULATION FINISHED >>>> " << std::endl;

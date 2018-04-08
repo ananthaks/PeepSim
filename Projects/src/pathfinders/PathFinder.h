@@ -11,10 +11,11 @@ protected:
 
   int mSceneWidth;
   int mSceneHeight;
+  const PeepSimConfig& mConfig;
 
 public:
 
-  PathFinder(int sceneWidth, int sceneHeight);
+  PathFinder(int sceneWidth, int sceneHeight, const PeepSimConfig& config);
 
   virtual void initialize(Scene &scene) = 0;
 

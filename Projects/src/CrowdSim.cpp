@@ -1,7 +1,7 @@
 #include "CrowdSim.h"
 
 
-CrowdSim::CrowdSim() {
+CrowdSim::CrowdSim(const PeepSimConfig& config): mConfig(config), mSolver(Solver(config)), mScene(Scene(config)) {
 }
 
 void CrowdSim::loadSceneFromFile(String filePath) {

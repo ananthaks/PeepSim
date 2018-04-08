@@ -7,8 +7,10 @@
 class CrowdSim {
   using String = std::string;
 
+  const PeepSimConfig& mConfig;
+
 public:
-  CrowdSim();
+  CrowdSim(const PeepSimConfig& config);
 
   void loadSceneFromFile(String filePath);
   void loadTestScene();

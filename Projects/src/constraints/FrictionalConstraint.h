@@ -6,6 +6,6 @@
 class FrictionalConstraint : public Constraint {
 
   public:
-    FrictionalConstraint();
+    FrictionalConstraint(const PeepSimConfig& config);
     VectorPair evaluate(Agent &x1, Agent &x2) override;
 };

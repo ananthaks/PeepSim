@@ -16,7 +16,7 @@ Agent& Agents::getAgent(int index) {
   return mAgents[index];
 }
 
-void Agents::addAgent(const Vector &startPos, const Vector &target, const Vector &plannedVelocity) {
+void Agents::addAgent(const Vector &startPos, const Vector &target, const Vector &plannedVelocity, float mass, float radius) {
 
   Agent agent;
   agent.mStartPosition = Vector(startPos);
@@ -24,6 +24,8 @@ void Agents::addAgent(const Vector &startPos, const Vector &target, const Vector
   agent.mCurrPosition = Vector(startPos);
   agent.mCurrVelocity = Vector::Zero(dim);
   agent.mForce = Vector::Zero(dim);
+  agent.mMass = mass;
+  agent.mRadius = radius;
 
   mAgents.push_back(agent);
 }
@@ -45,7 +47,7 @@ void Agents::outputFrame(unsigned int frameId) {
       float* m = parts->dataWrite<float>(mH, idx);
       float* p = parts->dataWrite<float>(posH, idx);
       float* v = parts->dataWrite<float>(vH, idx);
-      m[0] = mMass;
+      m[0] = mAgents[i].mMass;
 
       p[0] = mAgents[i].mCurrPosition(0, 0);
       p[1] = GROUND_Y_POS;

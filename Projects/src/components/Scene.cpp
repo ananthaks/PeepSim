@@ -1,7 +1,7 @@
 #include "Scene.h"
 #include "../colliders/BoxCollider.h"
 
-Scene::Scene() : mAgents(Agents(NUM_AGENTS)) {}
+Scene::Scene(const PeepSimConfig& config) : mAgents(Agents(NUM_AGENTS)), mConfig(config) {}
 
 Scene::~Scene() {
   for(auto& collider: mColliders) {
@@ -41,6 +41,9 @@ void Scene::loadFromFile(String filePath)
     float startPosition[2] = { group["startPosition"][0].get<float>(), group["startPosition"][1].get<float>() };
     float relativeTarget[2] = { group["relativeTarget"][0].get<float>(), group["relativeTarget"][1].get<float>() };
 
+    float mass = group["mass"].get<float>();
+    float radius = group["radius"].get<float>();
+
     for (int xSize = 0; xSize < size[0]; xSize++) {
       for (int ySize = 0; ySize < size[1]; ySize++) {
 
@@ -49,7 +52,7 @@ void Scene::loadFromFile(String filePath)
 
         Vector start = Vector(startPosition[0] + xOffset, startPosition[1] + yOffset);
         Vector target = start + Vector(relativeTarget[0], relativeTarget[1]);
-        mAgents.addAgent(start, target, Vector::Zero());
+        mAgents.addAgent(start, target, Vector::Zero(), mass, radius);
       }
     }
 

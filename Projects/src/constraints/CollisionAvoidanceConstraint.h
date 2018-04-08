@@ -8,6 +8,6 @@ constexpr float CONSTRAINT_CA_MAX_TAU = 20.0f; // Collision Avoidance Max Tau
 class CollisionAvoidanceConstraint : public Constraint {
 
   public:
-    CollisionAvoidanceConstraint();
+    CollisionAvoidanceConstraint(const PeepSimConfig& config);
     VectorPair evaluate(Agent &x1, Agent &x2) override;
 };

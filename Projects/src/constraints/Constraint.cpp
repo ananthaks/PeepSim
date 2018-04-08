@@ -1,4 +1,4 @@
 #include "Constraint.h"
 
-Constraint::Constraint() {
+Constraint::Constraint(const PeepSimConfig& config) : mConfig(config) {
 }

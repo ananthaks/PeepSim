@@ -5,8 +5,8 @@
 static int MAX = std::numeric_limits<int>::max();
 static int MAX_ITERATIONS = 10000;
 
-AStarFinder::AStarFinder(int sceneWidth, int sceneHeight)
-  : PathFinder(sceneWidth, sceneHeight), mGridWidth(sceneWidth), mGridHeight(sceneHeight), mAllowDiagonal(true) {}
+AStarFinder::AStarFinder(int sceneWidth, int sceneHeight, const PeepSimConfig& config)
+  : PathFinder(sceneWidth, sceneHeight, config), mGridWidth(sceneWidth), mGridHeight(sceneHeight), mAllowDiagonal(true) {}
 
 // Manhattan Heuristic
 inline float H_COST_MAH(int currX, int currZ, int targetX, int targetZ) {
@@ -28,8 +28,8 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
 
   bool pathFound = false;
 
-  std::pair<int, int> startPos = std::make_pair(std::floor(currPos[0] + PATH_GRID_SIZE / 2.f), std::floor(currPos[1] + PATH_GRID_SIZE / 2.f));
-  std::pair<int, int> endPos = std::make_pair(std::floor(targetPos[0] + PATH_GRID_SIZE / 2.f), std::floor(targetPos[1] + PATH_GRID_SIZE / 2.f));
+  std::pair<int, int> startPos = std::make_pair(std::floor(currPos[0] + mConfig.mPathGridSize / 2.f), std::floor(currPos[1] + mConfig.mPathGridSize / 2.f));
+  std::pair<int, int> endPos = std::make_pair(std::floor(targetPos[0] + mConfig.mPathGridSize / 2.f), std::floor(targetPos[1] + mConfig.mPathGridSize / 2.f));
 
   // target & source at same location
   if(startPos.first == endPos.first && startPos.second == endPos.second) {
@@ -168,11 +168,11 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
 
       itera++;
 
-      if(itera > MAX_ITERATIONS) {
+      if(itera > mConfig.mMaxIterations) {
         std::cout << "Breaking path from infinite loop" << std::endl;
         break;
       }
-      path.push_back(Vector(x - PATH_GRID_SIZE / 2.f, z - PATH_GRID_SIZE / 2.f));
+      path.push_back(Vector(x - mConfig.mPathGridSize / 2.f, z - mConfig.mPathGridSize / 2.f));
       tempX = mNodes[x][z].parentX;
       tempZ = mNodes[x][z].parentZ;
       x = tempX;

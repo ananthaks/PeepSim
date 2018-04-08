@@ -18,7 +18,7 @@ private:
 
 public:
 
-  AStarFinder(int sceneWidth, int sceneHeight);
+  AStarFinder(int sceneWidth, int sceneHeight, const PeepSimConfig& config);
 
   void initialize(Scene &scene) override;
 
