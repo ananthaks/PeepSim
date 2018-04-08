@@ -50,4 +50,6 @@ public:
 
   void outputFrame(unsigned int frameId);
 
+    std::vector<Vector> getAllPositions();
+
 };

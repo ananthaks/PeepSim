@@ -32,7 +32,7 @@ protected:
 public:
     BaseIntegrator(std::string name);
 
-    ~BaseIntegrator();
+    virtual ~BaseIntegrator() = default;
 
     virtual void integrate(float timeStep, int params, const State<T, dim> &currentState, State<T, dim> &newState) = 0;
 

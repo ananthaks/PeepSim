@@ -61,4 +61,7 @@ struct PeepSimConfig {
   }
 };
 
+struct Results {
+    std::vector<std::vector<Vector>> mPositions;
+};
 

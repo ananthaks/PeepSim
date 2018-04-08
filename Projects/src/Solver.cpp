@@ -22,6 +22,8 @@ inline float W(Vector distance, float h, float kernel)
 void Solver::solve(Scene &scene)
 {
 
+    Results results = Results();
+
   Agents mAgents = scene.mAgents;
 
 #ifdef PATH_FINDER_ON
@@ -181,6 +183,8 @@ void Solver::solve(Scene &scene)
       agent.mCurrPosition = agent.mProposedPosition;
     }
 
+      results.mPositions.push_back(mAgents.getAllPositions());
 
   }
+    return results;
 }

@@ -6,6 +6,11 @@
 #include <OP/OP_Operator.h>
 #include <OP/OP_OperatorTable.h>
 
+#include "globalincludes.h"
+#include "CrowdSim.h"
+
+#define TEST_BASE_PLUGIN
+
 class GEO_PrimParticle;
 
 namespace HDK_Sample {
@@ -13,6 +18,8 @@ namespace HDK_Sample {
   class PeepSimPlugin : public SOP_Node {
 
    public:
+
+
     static OP_Node*    myConstructor(OP_Network*, const char*,
                                      OP_Operator*);
 
@@ -63,8 +70,12 @@ namespace HDK_Sample {
 
    private:
 
-	   std::vector<GEO_Primitive*> mAgents;
+	   Results mResults;
+	   
+	   PeepSimConfig mSimConfig;
 
+	   std::vector<GEO_Primitive*> mAgents;
+	   UT_String mFilePath;
 
 	   GEO_PrimParticle	*mySystem;
 	   fpreal		 myLastCookTime;	// Last cooked time

@@ -18,7 +18,7 @@ public:
 
   Collider(const Vector &origin);
 
-  ~Collider();
+  virtual ~Collider();
 
   virtual bool collide(const Vector& position, float radius) = 0;
 

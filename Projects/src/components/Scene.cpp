@@ -3,12 +3,6 @@
 
 Scene::Scene(const PeepSimConfig& config) : mAgents(Agents(NUM_AGENTS)), mConfig(config) {}
 
-Scene::~Scene() {
-  for(auto& collider: mColliders) {
-    delete collider;
-  }
-}
-
 void Scene::loadFromFile(String filePath)
 {
   std::ifstream inputFileStream(filePath);

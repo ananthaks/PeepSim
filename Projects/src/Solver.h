@@ -26,6 +26,6 @@ public:
 
   void initialize();
 
-  void solve(Scene &scene);
+  Results solve(Scene &scene);
 
 };

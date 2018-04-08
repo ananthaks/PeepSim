@@ -67,3 +67,11 @@ void Agents::outputFrame(unsigned int frameId) {
 #endif
 
 }
+
+std::vector<Vector> Agents::getAllPositions() {
+    std::vector<Vector> result;
+    for (int i=0; i < mAgents.size(); i++){
+        result.push_back(mAgents[i].mCurrPosition);
+    }
+    return result;
+}

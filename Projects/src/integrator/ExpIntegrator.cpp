@@ -3,8 +3,6 @@
 
 ExpIntegrator::ExpIntegrator(std::string name) : BaseIntegrator(name) {}
 
-ExpIntegrator::~ExpIntegrator() {}
-
 void ExpIntegrator::integrate(float timeStep, int params, const State<T, dim> &currentState, State<T, dim> &newState) {
 
     if(currentState.mComponents.size() == 0) {

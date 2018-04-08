@@ -14,7 +14,7 @@ public:
 
   void loadSceneFromFile(String filePath);
   void loadTestScene();
-  void evaluate();
+  inline Results evaluate();
 
 private:
   Scene mScene;

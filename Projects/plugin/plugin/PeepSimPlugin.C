@@ -11,9 +11,9 @@
 #include <OP/OP_Operator.h>
 #include <OP/OP_OperatorTable.h>
 
-
 #include <limits.h>
 #include "PeepSimPlugin.h"
+
 
 static float numAgent = 10.0;
 
@@ -167,6 +167,9 @@ PeepSimPlugin::PeepSimPlugin(OP_Network* net, const char* name, OP_Operator* op)
   : SOP_Node(net,
              name, op) {
   myCurrPoint = -1; // To prevent garbage values from being returned
+
+  mSimConfig.create();
+
 }
 
 PeepSimPlugin::~PeepSimPlugin() {}
@@ -177,25 +180,17 @@ unsigned PeepSimPlugin::disableParms() {
 
 void PeepSimPlugin::AddAgent(float x, float y, float z) {
 
-  /*GU_PrimSphereParms   parms(gdp);
-  parms.freq = 10;
-  GEO_Primitive* poly = GU_PrimSphere::build(parms, GEO_PRIMPOLYSOUP);*/
-
-  GU_PrimPoly* poly = GU_PrimPoly::build(gdp, 2, GU_POLY_OPEN);
-
-  GA_Offset ptoff      = poly->getPointOffset(0);
-  UT_Vector3F startPos = UT_Vector3F(x, y, z);
-  gdp->setPos3(ptoff, startPos);
-  poly->appendVertex(ptoff);
-
-  GA_Offset ptoff2   = poly->getPointOffset(1);
-  UT_Vector3F endPos = UT_Vector3F(x, y + 2, z);
-  gdp->setPos3(ptoff2, endPos);
-  poly->appendVertex(ptoff2);
-
 }
 
 void PeepSimPlugin::initCrowdSim() {
+
+	CrowdSim crowdSim = CrowdSim(mSimConfig);
+	crowdSim.loadSceneFromFile(mFilePath.toStdString());
+	mResults = crowdSim.evaluate();
+
+
+#ifdef TEST_BASE_PLUGIN
+
 	printf("Initing Peep Sim!\n");
 
 	gdp->clearAndDestroy();
@@ -204,48 +199,71 @@ void PeepSimPlugin::initCrowdSim() {
 	//TODO need to check if we need to destory/free the memory of the object we created
 	// I am calling gdp::clearAndDestroy but double check again
 
-	float total = 2 * M_PI;
+	for (int i = 0; i < mResults.mPositions.size(); ++i) {
 
-	for (int i = 0; i < numAgent; ++i) {
-
-		float xPos = 5 * std::cos(i * total / (float) numAgent);
-		float zPos = 5 * std::sin(i * total / (float) numAgent);
-
-		printf("Pos %f %f\n", xPos, zPos);
 
 		GU_PrimSphereParms parms(gdp);
-		parms.freq = 10;
+		parms.freq = 1;
 
 		// Change this to some obj
 		GEO_Primitive *sphere = GU_PrimSphere::build(parms, GEO_PRIMSPHERE);
 
-		sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
+		float x = mResults.mPositions[0][i][0];
+		float z = mResults.mPositions[0][i][2];
+
+		sphere->setPos3(0, UT_Vector3F(x, 0, z));
 		
 		mAgents.push_back(sphere);
 
 	}
+
+
+	//float total = 2 * M_PI;
+
+	//for (int i = 0; i < numAgent; ++i) {
+
+	//	float xPos = 5 * std::cos(i * total / (float)numAgent);
+	//	float zPos = 5 * std::sin(i * total / (float)numAgent);
+
+	//	printf("Pos %f %f\n", xPos, zPos);
+
+	//	GU_PrimSphereParms parms(gdp);
+	//	parms.freq = 1;
+
+	//	// Change this to some obj
+	//	GEO_Primitive *sphere = GU_PrimSphere::build(parms, GEO_PRIMSPHERE);
+
+	//	sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
+
+	//	mAgents.push_back(sphere);
+
+	//}
+#endif
 }
 
 void PeepSimPlugin::update(fpreal frame) {
+
+#ifdef TEST_BASE_PLUGIN
 	printf("Update for Frame %f \n", frame);
 
 	int period = 360;
 
-	float xPos;
-	float zPos;
-	float angle;
+	float xPos, zPos, angle;
 	float total = 2 * M_PI;
+
+	int frameId = frame;
 
 	for (int i = 0; i < mAgents.size(); ++i) {
 
 		GEO_Primitive *sphere = mAgents[i];
-		angle = i * total / (float)numAgent + ((int)(frame) % period) * total / (float)(period);
 
-		xPos = 5 * std::cos(angle);
-		zPos = 5 * std::sin(angle);
+		float x = mResults.mPositions[frameId][i][0];
+		float z = mResults.mPositions[frameId][i][2];
 
-		sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
+		sphere->setPos3(0, UT_Vector3F(x, 0, z));
 	}
+#endif
+
 }
 
 
@@ -258,8 +276,7 @@ OP_ERROR PeepSimPlugin::cookMySop(OP_Context& context) {
   int numAgents;
   numAgents = 10;// NUM_AGENTS(now);
 
-  UT_String filePath;
-  AGENTS_PATH(filePath, now);
+  AGENTS_PATH(mFilePath, now);
 
   float velocityBlend      = VELOCITYBLEND(now);
   float maxVelocity        = MAXVELOCITY(now);

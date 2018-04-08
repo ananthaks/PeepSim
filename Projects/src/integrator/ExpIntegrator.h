@@ -13,7 +13,7 @@ public:
 public:
     ExpIntegrator(std::string name);
 
-    ~ExpIntegrator();
+    ~ExpIntegrator() = default;
 
     virtual void integrate(float timeStep, int params, const State<T, dim> &currentState, State<T, dim> &newState);
 

@@ -17,7 +17,12 @@ struct Scene {
   const PeepSimConfig& mConfig;
 
   Scene(const PeepSimConfig& config);
-  ~Scene();
+    ~Scene() {
+        for(auto& collider: mColliders) {
+            delete collider;
+        }
+    }
+
   void loadFromFile(String filePath);
 
   Agents mAgents;

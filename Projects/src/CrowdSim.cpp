@@ -1,6 +1,5 @@
 #include "CrowdSim.h"
 
-
 CrowdSim::CrowdSim(const PeepSimConfig& config): mConfig(config), mSolver(Solver(config)), mScene(Scene(config)) {
 }
 
@@ -24,8 +23,7 @@ void CrowdSim::loadTestScene() {
 
 }
 
-void CrowdSim::evaluate() {
+Results CrowdSim::evaluate() {
   mSolver.initialize();
-  mSolver.solve(mScene);
-
+  return mSolver.solve(mScene);
 }
