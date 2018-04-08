@@ -59,3 +59,10 @@ struct Cell {
   bool isClosed;
   bool isBlocked;
 };
+
+struct PeepSimConfig {
+  float mFPS;
+  float mSimualtionDuration {10};
+};
+
+
