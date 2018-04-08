@@ -4,17 +4,6 @@
 #define TEST_EIGEN
 #define TEST_PARTIO
 
-void checkIfEigenWorks() {
-    MatrixXd m(2,2);
-    m(0,0) = 3;
-    m(1,0) = 2.5;
-    m(0,1) = -1;
-    m(1,1) = m(1,0) + m(0,1);
-    std::cout << m << std::endl;
-
-    std::cout << "<<<< OK EIGEN LOADED SUCCESSFULLY >>>> " << std::endl;
-}
-
 template <class T, int dim>
 void checkIfPartioWorks() {
 
@@ -49,7 +38,6 @@ int main()
 {
 
 #ifdef TEST_EIGEN
-    checkIfEigenWorks();
 #endif
 
 #ifdef TEST_PARTIO
@@ -60,7 +48,7 @@ int main()
     config.create();
 
     CrowdSim simulator = CrowdSim(config);
-    simulator.loadSceneFromFile("scenes/scene_4.json");
+    simulator.loadSceneFromFile("scenes/scene_2.json");
     simulator.evaluate();
     std::cout << "<<<< CROWD SIMULATION FINISHED >>>> " << std::endl;
 }

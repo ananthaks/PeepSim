@@ -15,7 +15,7 @@ void Solver::initialize()
 // Source : https://nccastaff.bournemouth.ac.uk/jmacey/MastersProjects/MSc15/06Burak/BurakErtekinMScThesis.pdf
 inline float W(Vector distance, float h, float kernel)
 {
-  float r = distance.norm();
+  float r = distance.Length();
   return (0.f <= r && r <= h) ? (kernel * (pow(h * h -  r * r, 3)) / (pow(h, 9))) : 0.f;
 }
 
@@ -56,7 +56,7 @@ void Solver::solve(Scene &scene)
       Vector target = agent.mPlannedPath[agent.mPlannedPath.size() - agent.currTarget - 1];
       Vector dist = target - agent.mCurrPosition;
 
-      if (dist.norm() < mConfig.mMinDistanceToTarget)
+      if (dist.Length() < mConfig.mMinDistanceToTarget)
       {
         agent.currTarget = agent.currTarget + 1;
       }
@@ -155,7 +155,7 @@ void Solver::solve(Scene &scene)
     for (int i = 0; i < mAgents.getNumAgents(); ++i)
     {
       Agent& agent = mAgents.getAgent(i);
-      Vector viscosityVel = Vector::Zero();
+      Vector viscosityVel = Vector(0, 0);
       for (int j = 0; j < mAgents.getNumAgents(); ++j)
       {
         if (i == j)
@@ -173,7 +173,7 @@ void Solver::solve(Scene &scene)
       Agent& agent = mAgents.getAgent(i);
 
       //agent.mCurrVelocity += VISCOSITY_C * viscosityVels[i];
-      float speed = agent.mCurrVelocity.norm();
+      float speed = agent.mCurrVelocity.Length();
       if (speed > mConfig.mMaxVelocity)
       {
         agent.mCurrVelocity *= (mConfig.mMaxVelocity / speed);

@@ -22,8 +22,8 @@ void Agents::addAgent(const Vector &startPos, const Vector &target, const Vector
   agent.mStartPosition = Vector(startPos);
   agent.mTargetPosition = Vector(target);
   agent.mCurrPosition = Vector(startPos);
-  agent.mCurrVelocity = Vector::Zero(dim);
-  agent.mForce = Vector::Zero(dim);
+  agent.mCurrVelocity = Vector(0, 0);
+  agent.mForce = Vector(0, 0);
   agent.mMass = mass;
   agent.mRadius = radius;
 
@@ -32,6 +32,8 @@ void Agents::addAgent(const Vector &startPos, const Vector &target, const Vector
 
 
 void Agents::outputFrame(unsigned int frameId) {
+
+#ifndef DISABLE_PARTIO
 
   std::string particleFile = "output/frame" + std::to_string(frameId) + ".bgeo";
 
@@ -49,17 +51,19 @@ void Agents::outputFrame(unsigned int frameId) {
       float* v = parts->dataWrite<float>(vH, idx);
       m[0] = mAgents[i].mMass;
 
-      p[0] = mAgents[i].mCurrPosition(0, 0);
+      p[0] = mAgents[i].mCurrPosition(0);
       p[1] = GROUND_Y_POS;
-      p[2] = mAgents[i].mCurrPosition(1, 0);
+      p[2] = mAgents[i].mCurrPosition(1);
 
-      v[0] = mAgents[i].mCurrVelocity(0, 0);
+      v[0] = mAgents[i].mCurrVelocity(0);
       v[1] = 0;
-      v[2] = mAgents[i].mCurrVelocity(1, 0);
+      v[2] = mAgents[i].mCurrVelocity(1);
 
   }
 
   Partio::write(particleFile.c_str(), *parts);
   parts->release();
+
+#endif
 
 }

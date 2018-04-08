@@ -1,7 +1,7 @@
 #include "Collider.h"
 
 Collider::Collider(const Vector &origin) : mOrigin(origin), mVisible(true),
-  mCollide(true), mTranslation(Vector::Zero(dim)), mScale(Vector::Zero(dim)), mRotation(Vector::Zero(dim)) {}
+  mCollide(true), mTranslation(Vector(0, 0)), mScale(Vector(0, 0)), mRotation(Vector(0, 0)) {}
 
 Collider::~Collider() {}
 

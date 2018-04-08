@@ -59,7 +59,13 @@ add_cispba_executable(src main.cpp
         Solver.cpp
         CrowdSim.cpp)
 
-target_include_directories(src SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
+target_include_directories(
+  src
+  SYSTEM PUBLIC
+  ${EIGEN3_INCLUDE_DIR}
+  "${PROJECT_SOURCE_DIR}/Projects/external/mathfu/include"
+  "${PROJECT_SOURCE_DIR}/Projects/external/mathfu/dependencies/vectorial/include"
+  )
 
 # this flag will help to make it faster - @anantha
 set(CMAKE_CXX_FLAGS "-O3")

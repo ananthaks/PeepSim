@@ -52,7 +52,7 @@ void Scene::loadFromFile(String filePath)
 
         Vector start = Vector(startPosition[0] + xOffset, startPosition[1] + yOffset);
         Vector target = start + Vector(relativeTarget[0], relativeTarget[1]);
-        mAgents.addAgent(start, target, Vector::Zero(), mass, radius);
+        mAgents.addAgent(start, target, Vector(0, 0), mass, radius);
       }
     }
 

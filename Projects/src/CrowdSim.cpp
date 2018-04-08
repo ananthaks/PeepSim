@@ -14,11 +14,11 @@ void CrowdSim::loadTestScene() {
   // and Send it to Solver!
 
   for(int i = 0; i < 10; ++i) {
-    mScene.mAgents.addAgent(Vector(5.f, i + 0.5f), Vector(-5.f, i + 0.5f), Vector::Zero());
+    mScene.mAgents.addAgent(Vector(5.f, i + 0.5f), Vector(-5.f, i + 0.5f), Vector(0, 0));
   }
 
   for(int i = 0; i < 10; ++i)  {
-    mScene.mAgents.addAgent(Vector(-5.f, i), Vector(5.f, i), Vector::Zero());
+    mScene.mAgents.addAgent(Vector(-5.f, i), Vector(5.f, i), Vector(0, 0));
   }
 
 

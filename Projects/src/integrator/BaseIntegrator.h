@@ -14,8 +14,8 @@ template <class T, int dim>
 struct State {
     int mStateId;
     T mMass;
-    std::vector<Matrix<T, dim, 1>> mComponents;
-    std::vector<Matrix<T, dim, 1>> mComponentDot;
+    std::vector<Vector> mComponents;
+    std::vector<Vector> mComponentDot;
 
     State() {
         mComponents.resize(4);

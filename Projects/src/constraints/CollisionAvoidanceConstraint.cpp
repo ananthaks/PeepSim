@@ -7,18 +7,18 @@ CollisionAvoidanceConstraint::CollisionAvoidanceConstraint(const PeepSimConfig& 
 
 VectorPair CollisionAvoidanceConstraint::evaluate(Agent &x1, Agent &x2)
 {
-  VectorPair result = VectorPair(Vector::Zero(), Vector::Zero());
+  VectorPair result = VectorPair(Vector(0, 0), Vector(0, 0));
 
   // TODO: Stiffness Constaint?
 
   Vector distVec = x1.mCurrPosition - x2.mCurrPosition;
   Vector proposedVec = x1.mProposedPosition - x2.mProposedPosition;
 
-  float a = (1.0f / mConfig.mTimeStepSq) * (proposedVec.squaredNorm());
-  float b = (-1.0f / mConfig.mTimeStep) * (distVec.dot(proposedVec));
+  float a = (1.0f / mConfig.mTimeStepSq) * (proposedVec.LengthSquared());
+  float b = (-1.0f / mConfig.mTimeStep) * (Vector::DotProduct(distVec, proposedVec));
 
   float agentRadiusSum = x1.mRadius + x2.mRadius;
-  float c = distVec.squaredNorm() - (agentRadiusSum * agentRadiusSum);
+  float c = distVec.LengthSquared() - (agentRadiusSum * agentRadiusSum);
 
   float tau = (b - std::sqrt((b * b) - (a * c))) / a;
 
@@ -27,8 +27,8 @@ VectorPair CollisionAvoidanceConstraint::evaluate(Agent &x1, Agent &x2)
 
   Vector v12 = v1 - v2;
 
-  float a2 = v12.squaredNorm();
-  float b2 = -1.0f * (distVec.dot(v12));
+  float a2 = v12.LengthSquared();
+  float b2 = -1.0f * (Vector::DotProduct(distVec, v12));
   float c2 = c;
 
   float tau2 = (b2 - std::sqrt((b2 * b2) - (a2 * c2))) / a2;
@@ -64,9 +64,9 @@ VectorPair CollisionAvoidanceConstraint::evaluate(Agent &x1, Agent &x2)
                (predictAgent2Pos2 - predictAgent2Pos1);
 
     // Contact Normal
-    Vector n = (predictAgent1Pos2 - predictAgent2Pos2).normalized();
+    Vector n = (predictAgent1Pos2 - predictAgent2Pos2).Normalized();
 
-    Vector dn = (d.dot(n)) * n;
+    Vector dn = (Vector::DotProduct(d, n)) * n;
     Vector dt = d - dn; // Tangential Displacement needed
 
     float powVal = (-1.0f * tauPrev * tauPrev) / tau;

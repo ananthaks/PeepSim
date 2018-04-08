@@ -10,13 +10,13 @@ VectorPair FrictionalConstraint::evaluate(Agent &x1, Agent &x2) {
   // TODO: Take Agent Specific Radius
   float minDistance = x1.mRadius + x2.mRadius;
 
-  float constraintValue = distVec.norm() - minDistance;
+  float constraintValue = distVec.Length() - minDistance;
 
-  VectorPair result = VectorPair(Vector::Zero(), Vector::Zero());
+  VectorPair result = VectorPair(Vector(0, 0), Vector(0, 0));
 
   if (constraintValue < 0) {
     // Need to apply Constraint to reach minDistance length between x1 & x2.
-    Vector n = distVec.normalized();
+    Vector n = distVec.Normalized();
     float invWeight1 = 1.0f / x1.mMass;
     float invWeight2 = 1.0f / x2.mMass;
 

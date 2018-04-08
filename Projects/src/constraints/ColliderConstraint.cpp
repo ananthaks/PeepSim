@@ -6,7 +6,7 @@ VectorPair ColliderConstraint::evaluate(Agent &x1, Agent &x2) {
 }
 
 Vector ColliderConstraint::evaluate(Scene &scene, Agent &agent) {
-  Vector delta = Vector::Zero();
+  Vector delta = Vector(0, 0);
 
   for(auto& collider: scene.mColliders) {
     bool result = collider->collide(agent.mProposedPosition, agent.mRadius);
@@ -14,12 +14,12 @@ Vector ColliderConstraint::evaluate(Scene &scene, Agent &agent) {
     if (result) {
       float steps = mConfig.mCollisionMarchSteps;
       Vector lengthVec = agent.mCurrPosition - agent.mProposedPosition;
-      Vector direction = lengthVec.normalized();
+      Vector direction = lengthVec.Normalized();
 
       Vector validPosition = agent.mCurrPosition;
       bool foundCollision = false;
 
-      Vector itrDelta = direction * (lengthVec.norm() / steps);
+      Vector itrDelta = direction * (lengthVec.Length() / steps);
 
       // std::cout << "Evalutaing: " << std::endl;
       // std::cout << "Start:" << agent.mCurrPosition[0] << std::endl;

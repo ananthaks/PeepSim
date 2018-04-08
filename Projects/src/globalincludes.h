@@ -4,19 +4,18 @@
 #include <vector>
 #include <utility>
 
-#include "Eigen/Dense"
-#include "Eigen/Core"
-#include "Partio.h"
+#include "mathfu/vector.h"
+#include "mathfu/matrix.h"
 
-using Eigen::MatrixXd;
-using Eigen::Matrix;
-using Eigen::MatrixXi;
+#ifndef DISABLE_PARTIO
+#include "Partio.h"
+#endif
 
 using T = float;
 const int dim = 2;
 
-using Vector = Matrix<T, dim, 1>;
-using Vector3 = Matrix<T, 3, 1>;
+using Vector = mathfu::Vector<float, 2>;
+using Vector3 = mathfu::Vector<float, 3>;
 using VectorPair = std::pair<Vector, Vector>;
 
 const int NUM_AGENTS = 50;
