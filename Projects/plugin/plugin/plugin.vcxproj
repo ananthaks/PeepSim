@@ -27,14 +27,51 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="colliders\BoxCollider.cpp" />
+    <ClCompile Include="colliders\Collider.cpp" />
+    <ClCompile Include="components\Agents.cpp" />
+    <ClCompile Include="components\Scene.cpp" />
+    <ClCompile Include="constraints\ColliderConstraint.cpp" />
+    <ClCompile Include="constraints\CollisionAvoidanceConstraint.cpp" />
+    <ClCompile Include="constraints\Constraint.cpp" />
+    <ClCompile Include="constraints\FrictionalConstraint.cpp" />
+    <ClCompile Include="CrowdSim.cpp" />
+    <ClCompile Include="integrator\BaseIntegrator.cpp" />
+    <ClCompile Include="integrator\ExpIntegrator.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pathfinders\AStarFinder.cpp" />
+    <ClCompile Include="pathfinders\PathFinder.cpp" />
     <ClCompile Include="PeepSimPlugin.C" />
+    <ClCompile Include="Solver.cpp" />
     <ClCompile Include="vec.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="colliders\BoxCollider.h" />
+    <ClInclude Include="colliders\Collider.h" />
+    <ClInclude Include="components\Agents.h" />
+    <ClInclude Include="components\Scene.h" />
+    <ClInclude Include="constraints\ColliderConstraint.h" />
+    <ClInclude Include="constraints\CollisionAvoidanceConstraint.h" />
+    <ClInclude Include="constraints\Constraint.h" />
+    <ClInclude Include="constraints\FrictionalConstraint.h" />
+    <ClInclude Include="CrowdSim.h" />
+    <ClInclude Include="external\json.hpp" />
+    <ClInclude Include="globalincludes.h" />
+    <ClInclude Include="integrator\BaseIntegrator.h" />
+    <ClInclude Include="integrator\ExpIntegrator.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="pathfinders\AStarFinder.h" />
+    <ClInclude Include="pathfinders\PathFinder.h" />
     <ClInclude Include="PeepSimPlugin.h" />
+    <ClInclude Include="Solver.h" />
     <ClInclude Include="vec.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="scenes\scene_1.json" />
+    <None Include="scenes\scene_2.json" />
+    <None Include="scenes\scene_3.json" />
+    <None Include="scenes\scene_4.json" />
+    <None Include="scenes\scene_5.json" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5A2B37DE-A60C-4B8B-AA14-9EFEA6C880F7}</ProjectGuid>
@@ -216,10 +253,10 @@
       <FunctionLevelLinking>
       </FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;HOUDINI_TEMPLATE_EXPORTS;BOOST_ALL_NO_LIB;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;HOUDINI_TEMPLATE_EXPORTS;BOOST_ALL_NO_LIB;_USE_MATH_DEFINES;DISABLE_PARTIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(H16_PATH)\toolkit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\external\mathfu\dependencies\vectorial\include;..\..\external\mathfu\include;..\..\src;$(H16_PATH)\toolkit\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalOptions>-TP -Zc:forScope -DVERSION=”$(H16_VERSION)” -DI386 -DWIN32 -DSWAP_BITFIELDS -I . -MD -EHsc -GR -DSESI_LITTLE_ENDIAN -DNEED_SPECIALIZATION_STORAGE -DAMD64 -DSIZEOF_VOID_P=8 -DMAKING_DSO -DHBOOST_ALL_NO_LIB %(AdditionalOptions)</AdditionalOptions>

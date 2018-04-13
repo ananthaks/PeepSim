@@ -1,0 +1,23 @@
+{
+  "agentGroups": [{
+    "size": [1, 10],
+    "spacing": [1, 1],
+    "startPosition": [5, 0.5],
+    "relativeTarget": [-10, 0],
+    "mass": 1.0,
+    "radius": 0.25
+  }, {
+    "size": [1, 10],
+    "spacing": [1, 1],
+    "startPosition": [-5, 0],
+    "relativeTarget": [10, 0],
+    "mass": 1.0,
+    "radius": 0.25
+  }],
+
+  "colliders": [{
+    "origin": [0, -4],
+    "dimensions": [1, 8, 1],
+    "type": "box"
+  }]
+}
