@@ -1,13 +1,19 @@
 #pragma once
 
 #include <SOP/SOP_Node.h>
+
 #include <OP/OP_AutoLockInputs.h>
 #include <OP/OP_Director.h>
 #include <OP/OP_Operator.h>
 #include <OP/OP_OperatorTable.h>
 
+#include <DOP/DOP_Node.h>
+
+#include <SIM/SIM_OptionsUser.h>
+#include <SIM/SIM_SingleSolver.h>
+#include <SIM/SIM_Geometry.h>
+
 #include "globalincludes.h"
-#include "CrowdSim.h"
 
 #define TEST_BASE_PLUGIN
 
@@ -15,12 +21,95 @@ class GEO_PrimParticle;
 
 namespace HDK_Sample {
 
-  class PeepSimPlugin : public SOP_Node {
+
+	class PeepSource : public SOP_Node {
+
+	};
+
+	class PeepSimSolver :  public SIM_SingleSolver, public SIM_OptionsUser {
+
+	};
+
+	class AgentNode : public SOP_Node {
+
+	public:
+
+		static OP_Node*  myConstructor(OP_Network*, const char*, OP_Operator*);
+
+		static PRM_Template  mParameterList[];
+
+		static CH_LocalVariable  mLocalVariables[];
+
+	public:
+
+		AgentNode(OP_Network* net, const char* name, OP_Operator* op);
+
+		virtual ~AgentNode();
+
+		virtual unsigned disableParms();
+
+		virtual OP_ERROR cookMySop(OP_Context& context);
+
+		virtual bool evalVariableValue(fpreal& val, int index,	int thread);
+
+		virtual bool  evalVariableValue(UT_String& v, int i, int thread) {
+			return evalVariableValue(v, i, thread);
+		}
+
+		void initialize(int numAgents);
+
+		void addAgent(fpreal x, fpreal y, fpreal z);
+
+		void update(int agentId, fpreal x, fpreal y, fpreal z);
+
+	private:
+
+		// Vector of primitives
+		std::vector<GEO_Primitive*> mAgents;
+
+		// List of Arguments
+		
+		int mNumAgents;
+		UT_String mJSONFilePath;
+		UT_String mObjPath;
+
+		int myCurrPoint;
+		int myTotalPoints;
+
+		exint NUM_AGENTS(fpreal n) {
+			return evalInt("numAgents", 0, n);
+		}
+
+		void IMPORT_AGENTS(UT_String& label, fpreal t) {
+			evalString(label, "filePath", 0, t);
+		}
+
+		void OBJ_FILE(UT_String& label, fpreal t) {
+			evalString(label, "objFile", 0, t);
+		}
+
+	};
+
+
+	class PeepSim : public DOP_Node {
+
+	public:
+
+		static OP_Node* myConstructor(OP_Network*, const char*, OP_Operator*);
+
+		static PRM_Template	myTemplateList[];
+
+		PeepSim(OP_Network* net, const char* name, OP_Operator* op);
+
+		virtual ~PeepSim();
+
+	};
+
+  class PeepSimSolver : public SOP_Node {
 
    public:
 
-
-    static OP_Node*    myConstructor(OP_Network*, const char*,
+    static OP_Node*  myConstructor(OP_Network*, const char*,
                                      OP_Operator*);
 
     /// Stores the description of the interface of the SOP in Houdini.
@@ -35,9 +124,9 @@ namespace HDK_Sample {
 
    protected:
 
-    PeepSimPlugin(OP_Network* net, const char* name, OP_Operator* op);
+	PeepSimSolver(OP_Network* net, const char* name, OP_Operator* op);
 
-    virtual ~PeepSimPlugin();
+    virtual ~PeepSimSolver();
 
     /// Disable parameters according to other parameters.
     virtual unsigned disableParms();
@@ -48,14 +137,14 @@ namespace HDK_Sample {
 
     /// This function is used to lookup local variables that you have
     /// defined specific to your SOP.
-    virtual bool     evalVariableValue(
+    virtual bool  evalVariableValue(
           fpreal& val,
           int index,
           int thread);
 
     // Add virtual overload that delegates to the super class to avoid
     // shadow warnings.
-    virtual bool     evalVariableValue(
+    virtual bool  evalVariableValue(
           UT_String& v,
           int i,
           int thread) {
@@ -69,10 +158,6 @@ namespace HDK_Sample {
 	void update(fpreal frame);
 
    private:
-
-	   Results mResults;
-	   
-	   PeepSimConfig mSimConfig;
 
 	   std::vector<GEO_Primitive*> mAgents;
 	   UT_String mFilePath;
@@ -125,7 +210,6 @@ namespace HDK_Sample {
     int  COLLISIONSTEPS(fpreal t) {
       return evalInt("collisionSteps", 0, t);
     }
-
 	
   };
 } 

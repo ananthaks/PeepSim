@@ -11,6 +11,11 @@
 #include <OP/OP_Operator.h>
 #include <OP/OP_OperatorTable.h>
 
+#include <DOP/DOP_PRMShared.h>
+#include <DOP/DOP_InOutInfo.h>
+#include <DOP/DOP_Operator.h>
+#include <DOP/DOP_Engine.h>
+
 #include <limits.h>
 #include "PeepSimPlugin.h"
 
@@ -22,24 +27,71 @@ static float numAgent = 10.0;
 
 using namespace HDK_Sample;
 
-///
-/// newSopOperator is the hook that Houdini grabs from this dll
-/// and invokes to register the SOP.  In this case we add ourselves
-/// to the specified operator table.
-///
+/*
+* Register the SOP node
+*/
 void newSopOperator(OP_OperatorTable* table) {
 
   table->addOperator(
         new OP_Operator("CrowdSim", // Internal name
-                        "PeepSim", // UI name
-                        PeepSimPlugin::myConstructor, // How to build the SOP
-                        PeepSimPlugin::mParameterList, // My parameters
+                        "PeepSimSolver", // UI name
+                        PeepSimSolver::myConstructor, // How to build the SOP
+                        PeepSimSolver::mParameterList, // My parameters
                         0, // Min # of sources
                         0, // Max # of sources
-                        PeepSimPlugin::mLocalVariables, // Local variables
+                        PeepSimSolver::mLocalVariables, // Local variables
                         OP_FLAG_GENERATOR) // Flag it as generator
   );
 }
+
+/*
+* Register the PeepSim DOP node
+*/
+
+void newDopOperator(OP_OperatorTable *table)
+{
+	OP_Operator	*op;
+
+	op = new DOP_Operator("PluginBase", "PeepSim",
+		PeepSim::myConstructor,
+		PeepSim::myTemplateList, 0, 9999, 0,
+		0, 1);
+	table->addOperator(op);
+}
+
+/*
+* Defining a PeepSim DOP node Constructor for Houdini to create a plugin
+*/
+OP_Node* PeepSim::myConstructor(OP_Network *net, const char *name, OP_Operator *op) {
+	return new PeepSim(net, name, op);
+}
+
+static PRM_Name	theInputIndexName("inputindex", "Input Index");
+
+/*
+* Passing Possible parameter lists for PeepSim DOP node
+*/
+PRM_Template PeepSim::myTemplateList[] = {
+	
+	// Standard activation parameter.
+	PRM_Template(PRM_INT_J,	1, &DOPactivationName, &DOPactivationDefault),
+	
+	// Standard group parameter with group menu.
+	PRM_Template(PRM_STRING, 1, &DOPgroupName, &DOPgroupDefault, &DOPgroupMenu),
+
+	// The input index that determines which data will be attached to
+	// each object.
+	PRM_Template(PRM_INT_J,	1, &theInputIndexName, PRMzeroDefaults),
+
+	PRM_Template()
+};
+
+PeepSim::PeepSim(OP_Network *net, const char *name, OP_Operator *op) : DOP_Node(net, name, op)
+{}
+
+PeepSim::~PeepSim() 
+{}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -69,7 +121,7 @@ static PRM_Default collisionMarchingStepsDefault(1000);
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-PRM_Template PeepSimPlugin::mParameterList[] = {
+PRM_Template PeepSimSolver::mParameterList[] = {
   PRM_Template(PRM_STRING, PRM_Template::PRM_EXPORT_MIN, 1, &filePath, &filePathDefault, 0),
   PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &velocityBlendName, &velocityBlendDefault,
                0),
@@ -85,7 +137,7 @@ PRM_Template PeepSimPlugin::mParameterList[] = {
   PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &collisionMarchingStepsName,
                &collisionMarchingStepsDefault, 0),
 
-  PRM_Template(PRM_CALLBACK, 1, &generateCommandName, 0, 0, 0, PeepSimPlugin::generateCallback),
+  PRM_Template(PRM_CALLBACK, 1, &generateCommandName, 0, 0, 0, PeepSimSolver::generateCallback),
 
   /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -99,13 +151,13 @@ enum {
   VAR_NPT // Number of points in the star
 };
 
-CH_LocalVariable PeepSimPlugin::mLocalVariables[] = {
+CH_LocalVariable PeepSimSolver::mLocalVariables[] = {
   {"PT", VAR_PT, 0}, // The table provides a mapping
   {"NPT", VAR_NPT, 0}, // from text string to integer token
   {0, 0, 0},
 };
 
-bool PeepSimPlugin::evalVariableValue(fpreal& val, int index, int thread) {
+bool PeepSimSolver::evalVariableValue(fpreal& val, int index, int thread) {
   // myCurrPoint will be negative when we're not cooking so only try to
   // handle the local variables when we have a valid myCurrPoint index.
   if (myCurrPoint >= 0) {
@@ -130,14 +182,14 @@ bool PeepSimPlugin::evalVariableValue(fpreal& val, int index, int thread) {
   return SOP_Node::evalVariableValue(val, index, thread);
 }
 
-OP_Node* PeepSimPlugin::myConstructor(OP_Network* net, const char* name, OP_Operator* op) {
-  return new PeepSimPlugin(net, name, op);
+OP_Node* PeepSimSolver::myConstructor(OP_Network* net, const char* name, OP_Operator* op) {
+  return new PeepSimSolver(net, name, op);
 }
 
-int PeepSimPlugin::generateCallback(void* data, int index, float time, const PRM_Template*) {
+int PeepSimSolver::generateCallback(void* data, int index, float time, const PRM_Template*) {
   fpreal now = time;
 
-  PeepSimPlugin* me = (PeepSimPlugin*)data;
+  PeepSimSolver* me = (PeepSimSolver*)data;
 
   me->calledFromCallback = true;
 
@@ -147,7 +199,7 @@ int PeepSimPlugin::generateCallback(void* data, int index, float time, const PRM
   return 1;
 }
 
-int HDK_Sample::PeepSimPlugin::startSimulation(OP_Context& context) {
+int HDK_Sample::PeepSimSolver::startSimulation(OP_Context& context) {
   fpreal now = context.getTime();
 
   // Read input from GUI
@@ -163,30 +215,24 @@ int HDK_Sample::PeepSimPlugin::startSimulation(OP_Context& context) {
   return 0;
 }
 
-PeepSimPlugin::PeepSimPlugin(OP_Network* net, const char* name, OP_Operator* op)
+PeepSimSolver::PeepSimSolver(OP_Network* net, const char* name, OP_Operator* op)
   : SOP_Node(net,
              name, op) {
   myCurrPoint = -1; // To prevent garbage values from being returned
 
-  mSimConfig.create();
-
 }
 
-PeepSimPlugin::~PeepSimPlugin() {}
+PeepSimSolver::~PeepSimSolver() {}
 
-unsigned PeepSimPlugin::disableParms() {
+unsigned PeepSimSolver::disableParms() {
   return 0;
 }
 
-void PeepSimPlugin::AddAgent(float x, float y, float z) {
+void PeepSimSolver::AddAgent(float x, float y, float z) {
 
 }
 
-void PeepSimPlugin::initCrowdSim() {
-
-	CrowdSim crowdSim = CrowdSim(mSimConfig);
-	crowdSim.loadSceneFromFile(mFilePath.toStdString());
-	mResults = crowdSim.evaluate();
+void PeepSimSolver::initCrowdSim() {
 
 
 #ifdef TEST_BASE_PLUGIN
@@ -198,9 +244,15 @@ void PeepSimPlugin::initCrowdSim() {
 
 	//TODO need to check if we need to destory/free the memory of the object we created
 	// I am calling gdp::clearAndDestroy but double check again
+	
+	float total = 2 * M_PI;
 
-	for (int i = 0; i < mResults.mPositions.size(); ++i) {
+	for (int i = 0; i < numAgent; ++i) {
 
+		float xPos = 5 * std::cos(i * total / (float)numAgent);
+		float zPos = 5 * std::sin(i * total / (float)numAgent);
+
+		printf("Pos %f %f\n", xPos, zPos);
 
 		GU_PrimSphereParms parms(gdp);
 		parms.freq = 1;
@@ -208,40 +260,15 @@ void PeepSimPlugin::initCrowdSim() {
 		// Change this to some obj
 		GEO_Primitive *sphere = GU_PrimSphere::build(parms, GEO_PRIMSPHERE);
 
-		float x = mResults.mPositions[0][i][0];
-		float z = mResults.mPositions[0][i][2];
+		sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
 
-		sphere->setPos3(0, UT_Vector3F(x, 0, z));
-		
 		mAgents.push_back(sphere);
 
 	}
-
-
-	//float total = 2 * M_PI;
-
-	//for (int i = 0; i < numAgent; ++i) {
-
-	//	float xPos = 5 * std::cos(i * total / (float)numAgent);
-	//	float zPos = 5 * std::sin(i * total / (float)numAgent);
-
-	//	printf("Pos %f %f\n", xPos, zPos);
-
-	//	GU_PrimSphereParms parms(gdp);
-	//	parms.freq = 1;
-
-	//	// Change this to some obj
-	//	GEO_Primitive *sphere = GU_PrimSphere::build(parms, GEO_PRIMSPHERE);
-
-	//	sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
-
-	//	mAgents.push_back(sphere);
-
-	//}
 #endif
 }
 
-void PeepSimPlugin::update(fpreal frame) {
+void PeepSimSolver::update(fpreal frame) {
 
 #ifdef TEST_BASE_PLUGIN
 	printf("Update for Frame %f \n", frame);
@@ -257,17 +284,19 @@ void PeepSimPlugin::update(fpreal frame) {
 
 		GEO_Primitive *sphere = mAgents[i];
 
-		float x = mResults.mPositions[frameId][i][0];
-		float z = mResults.mPositions[frameId][i][2];
+		float angle = i * total / (float)numAgent + frameId % 360;
 
-		sphere->setPos3(0, UT_Vector3F(x, 0, z));
+		float xPos = 5 * std::cos(angle);
+		float zPos = 5 * std::sin(angle);
+
+		sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
 	}
 #endif
 
 }
 
 
-OP_ERROR PeepSimPlugin::cookMySop(OP_Context& context) {
+OP_ERROR PeepSimSolver::cookMySop(OP_Context& context) {
   
 	fpreal now = context.getTime();
 	
