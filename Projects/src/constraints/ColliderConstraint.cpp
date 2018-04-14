@@ -1,14 +1,16 @@
 #include "ColliderConstraint.h"
 
-ColliderConstraint::ColliderConstraint(const PeepSimConfig& config) : Constraint(config) {}
+ColliderConstraint::ColliderConstraint(const PeepSimConfig& config)
+  : Constraint(config) {}
 
-VectorPair ColliderConstraint::evaluate(Agent &x1, Agent &x2) {
+VectorPair ColliderConstraint::evaluate(Agent& x1, Agent& x2) {
+  return VectorPair(Vector(0, 0), Vector(0, 0));
 }
 
-Vector ColliderConstraint::evaluate(Scene &scene, Agent &agent) {
+Vector ColliderConstraint::evaluate(Scene& scene, Agent& agent) {
   Vector delta = Vector(0, 0);
 
-  for(auto& collider: scene.mColliders) {
+  for (auto& collider : scene.mColliders) {
     bool result = collider->collide(agent.mProposedPosition, agent.mRadius);
 
     if (result) {
@@ -28,7 +30,7 @@ Vector ColliderConstraint::evaluate(Scene &scene, Agent &agent) {
 
       Vector itrVec = agent.mCurrPosition;
 
-      for(int itr = 0; itr < steps; ++itr) {
+      for (int itr = 0; itr < steps; ++itr) {
         bool marchResult = collider->collide(itrVec, agent.mRadius);
 
         // std::cout << "Marching " << itr << std::endl;

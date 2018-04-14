@@ -13,8 +13,7 @@ public:
   CrowdSim(const PeepSimConfig& config);
 
   void loadSceneFromFile(String filePath);
-  void loadTestScene();
-  inline Results evaluate();
+  Results evaluate();
 
 private:
   Scene mScene;

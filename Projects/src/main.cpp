@@ -1,9 +1,7 @@
 #include "globalincludes.h"
 #include "CrowdSim.h"
 
-#define TEST_EIGEN
-#define TEST_PARTIO
-
+#ifndef DISABLE_PARTIO
 template <class T, int dim>
 void checkIfPartioWorks() {
 
@@ -32,23 +30,20 @@ void checkIfPartioWorks() {
     std::cout << "<<<< OK PARTIO LOADED SUCCESSFULLY >>>> " << std::endl;
 
 }
-
-
-int main()
-{
-
-#ifdef TEST_EIGEN
 #endif
+
+
+int main() {
 
 #ifdef TEST_PARTIO
     checkIfPartioWorks<float, 3>();
 #endif
 
-    PeepSimConfig config;
-    config.create();
+  PeepSimConfig config;
+  config.create();
 
-    CrowdSim simulator = CrowdSim(config);
-    simulator.loadSceneFromFile("scenes/scene_2.json");
-    simulator.evaluate();
-    std::cout << "<<<< CROWD SIMULATION FINISHED >>>> " << std::endl;
+  CrowdSim simulator = CrowdSim(config);
+  simulator.loadSceneFromFile("./scenes/scene_6.json");
+  auto results = simulator.evaluate();
+  std::cout << "<<<< CROWD SIMULATION FINISHED >>>> " << std::endl;
 }

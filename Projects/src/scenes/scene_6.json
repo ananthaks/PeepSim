@@ -1,0 +1,32 @@
+{
+  "agentGroups": [
+    {
+      "size": [ 1, 10 ],
+      "spacing": [ 1, 1 ],
+      "startPosition": [ 5, 0.5 ],
+      "relativeTarget": [ -10, 0 ],
+      "mass": 1.0,
+      "radius": 0.25,
+      "targetSequence": {
+        "markers": [
+          {
+            "pos": [ 0, 10 ],
+            "frameTime": 100,
+            "waitTime": 10
+          }
+        ]
+      },
+      "debugColor":  [255, 0, 0]
+    },
+    {
+      "size": [ 1, 10 ],
+      "spacing": [ 1, 1 ],
+      "startPosition": [ -5, 0 ],
+      "relativeTarget": [ 10, 0 ],
+      "mass": 1.0,
+      "radius": 0.25
+    }
+  ],
+
+  "colliders": []
+}

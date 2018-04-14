@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Colliders">
+      <UniqueIdentifier>{13947b74-af32-4b77-af60-0685800ff916}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Components">
+      <UniqueIdentifier>{10373e78-a99a-4fad-9e36-8cd9c5ee4f48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Constraints">
+      <UniqueIdentifier>{6f8eb86b-a469-4ed5-bd06-2d56a178b706}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Integrators">
+      <UniqueIdentifier>{091e31b4-ebb9-4e96-8580-12ec1cb4ec95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PathFinders">
+      <UniqueIdentifier>{a9f267b3-d628-4c83-aef2-3c1586dedcf7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes">
+      <UniqueIdentifier>{6aa785d2-f2f7-44fc-9189-181634656611}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\colliders\BoxCollider.cpp">
+      <Filter>Colliders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\colliders\Collider.cpp">
+      <Filter>Colliders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\components\Agents.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\components\Scene.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\constraints\ColliderConstraint.cpp">
+      <Filter>Constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\constraints\CollisionAvoidanceConstraint.cpp">
+      <Filter>Constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\constraints\Constraint.cpp">
+      <Filter>Constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\constraints\FrictionalConstraint.cpp">
+      <Filter>Constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\integrator\BaseIntegrator.cpp">
+      <Filter>Integrators</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\integrator\ExpIntegrator.cpp">
+      <Filter>Integrators</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\pathfinders\AStarFinder.cpp">
+      <Filter>PathFinders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\pathfinders\PathFinder.cpp">
+      <Filter>PathFinders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\CrowdSim.cpp" />
+    <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\Solver.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\colliders\BoxCollider.h">
+      <Filter>Colliders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\colliders\Collider.h">
+      <Filter>Colliders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\components\Agents.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\components\Scene.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\constraints\ColliderConstraint.h">
+      <Filter>Constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\constraints\CollisionAvoidanceConstraint.h">
+      <Filter>Constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\constraints\Constraint.h">
+      <Filter>Constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\constraints\FrictionalConstraint.h">
+      <Filter>Constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\integrator\BaseIntegrator.h">
+      <Filter>Integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\integrator\ExpIntegrator.h">
+      <Filter>Integrators</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\pathfinders\AStarFinder.h">
+      <Filter>PathFinders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\pathfinders\PathFinder.h">
+      <Filter>PathFinders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Solver.h" />
+    <ClInclude Include="..\..\src\CrowdSim.h" />
+    <ClInclude Include="..\..\src\globalincludes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\scenes\scene_1.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="..\..\src\scenes\scene_2.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="..\..\src\scenes\scene_3.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="..\..\src\scenes\scene_4.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="..\..\src\scenes\scene_5.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="..\..\src\scenes\scene6.json" />
+    <None Include="..\..\src\scenes\scene_6.json">
+      <Filter>Scenes</Filter>
+    </None>
+  </ItemGroup>
+</Project>
