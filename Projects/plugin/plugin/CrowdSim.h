@@ -7,16 +7,17 @@
 class CrowdSim {
   using String = std::string;
 
-  const PeepSimConfig& mConfig;
+  PeepSimConfig mConfig;
 
 public:
   CrowdSim(const PeepSimConfig& config);
+  CrowdSim(const PeepSimConfig& config, const Scene& scene);
 
   void loadSceneFromFile(String filePath);
-  void loadTestScene();
-  inline Results evaluate();
+  Results evaluate();
 
 private:
   Scene mScene;
   Solver mSolver;
+  
 };

@@ -5,7 +5,7 @@
 
 class Constraint {
   protected:
-    const PeepSimConfig& mConfig;
+    PeepSimConfig mConfig;
 
   public:
     Constraint(const PeepSimConfig& config);

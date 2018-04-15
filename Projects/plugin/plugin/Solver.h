@@ -18,7 +18,7 @@ private:
   ColliderConstraint mColliderConstraint;
 
   AStarFinder mPathFinder;
-  const PeepSimConfig& mConfig;
+  PeepSimConfig mConfig;
 
 public:
 

@@ -13,6 +13,42 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\colliders">
+      <UniqueIdentifier>{ca830fdc-bbf6-42a7-bded-267267f678a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\components">
+      <UniqueIdentifier>{d90bb99b-1e41-449a-843a-fb175818cbea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\constraints">
+      <UniqueIdentifier>{9b451083-9ea9-41da-a336-26cbb45581e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\external">
+      <UniqueIdentifier>{7ccba6f6-412f-4d9c-a1f2-05d0d93009a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\integrator">
+      <UniqueIdentifier>{001e7468-bc03-41d3-ae4f-f459fede0d86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\pathfinders">
+      <UniqueIdentifier>{e0c2741c-f5ec-440d-8744-e9b672f328bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\scenes">
+      <UniqueIdentifier>{f37390a1-2e6f-4c25-9538-542e5596ca63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\colliders">
+      <UniqueIdentifier>{c6984ad2-21fd-49fa-9b92-9aa82803c9cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\components">
+      <UniqueIdentifier>{e20cd7e1-e1c2-4818-9ba7-fbd59ef796c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\constraints">
+      <UniqueIdentifier>{25026469-e8b8-486c-8236-319e47da949d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\integrator">
+      <UniqueIdentifier>{493ce5e9-06c9-45d6-9922-a3bf33c87ea8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\pathfinders">
+      <UniqueIdentifier>{7904056f-aa79-4a7c-86e5-ed47a31da314}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -22,6 +58,48 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PeepSimPlugin.C">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="colliders\Collider.cpp">
+      <Filter>Source Files\colliders</Filter>
+    </ClCompile>
+    <ClCompile Include="colliders\BoxCollider.cpp">
+      <Filter>Source Files\colliders</Filter>
+    </ClCompile>
+    <ClCompile Include="components\Scene.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="components\Agents.cpp">
+      <Filter>Source Files\components</Filter>
+    </ClCompile>
+    <ClCompile Include="constraints\FrictionalConstraint.cpp">
+      <Filter>Source Files\constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="constraints\ColliderConstraint.cpp">
+      <Filter>Source Files\constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="constraints\CollisionAvoidanceConstraint.cpp">
+      <Filter>Source Files\constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="constraints\Constraint.cpp">
+      <Filter>Source Files\constraints</Filter>
+    </ClCompile>
+    <ClCompile Include="integrator\ExpIntegrator.cpp">
+      <Filter>Source Files\integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="integrator\BaseIntegrator.cpp">
+      <Filter>Source Files\integrator</Filter>
+    </ClCompile>
+    <ClCompile Include="pathfinders\PathFinder.cpp">
+      <Filter>Source Files\pathfinders</Filter>
+    </ClCompile>
+    <ClCompile Include="pathfinders\AStarFinder.cpp">
+      <Filter>Source Files\pathfinders</Filter>
+    </ClCompile>
+    <ClCompile Include="Solver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CrowdSim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,5 +113,70 @@
     <ClInclude Include="PeepSimPlugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="colliders\Collider.h">
+      <Filter>Header Files\colliders</Filter>
+    </ClInclude>
+    <ClInclude Include="colliders\BoxCollider.h">
+      <Filter>Header Files\colliders</Filter>
+    </ClInclude>
+    <ClInclude Include="components\Scene.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="components\Agents.h">
+      <Filter>Header Files\components</Filter>
+    </ClInclude>
+    <ClInclude Include="constraints\FrictionalConstraint.h">
+      <Filter>Header Files\constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="constraints\ColliderConstraint.h">
+      <Filter>Header Files\constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="constraints\CollisionAvoidanceConstraint.h">
+      <Filter>Header Files\constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="constraints\Constraint.h">
+      <Filter>Header Files\constraints</Filter>
+    </ClInclude>
+    <ClInclude Include="external\json.hpp">
+      <Filter>Header Files\external</Filter>
+    </ClInclude>
+    <ClInclude Include="integrator\BaseIntegrator.h">
+      <Filter>Header Files\integrator</Filter>
+    </ClInclude>
+    <ClInclude Include="integrator\ExpIntegrator.h">
+      <Filter>Header Files\integrator</Filter>
+    </ClInclude>
+    <ClInclude Include="pathfinders\AStarFinder.h">
+      <Filter>Header Files\pathfinders</Filter>
+    </ClInclude>
+    <ClInclude Include="pathfinders\PathFinder.h">
+      <Filter>Header Files\pathfinders</Filter>
+    </ClInclude>
+    <ClInclude Include="Solver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CrowdSim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="globalincludes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="scenes\scene_3.json">
+      <Filter>Header Files\scenes</Filter>
+    </None>
+    <None Include="scenes\scene_4.json">
+      <Filter>Header Files\scenes</Filter>
+    </None>
+    <None Include="scenes\scene_5.json">
+      <Filter>Header Files\scenes</Filter>
+    </None>
+    <None Include="scenes\scene_1.json">
+      <Filter>Header Files\scenes</Filter>
+    </None>
+    <None Include="scenes\scene_2.json">
+      <Filter>Header Files\scenes</Filter>
+    </None>
   </ItemGroup>
 </Project>

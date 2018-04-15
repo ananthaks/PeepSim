@@ -11,7 +11,7 @@ protected:
 
   int mSceneWidth;
   int mSceneHeight;
-  const PeepSimConfig& mConfig;
+  PeepSimConfig mConfig;
 
 public:
 

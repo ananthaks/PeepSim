@@ -14,6 +14,7 @@
 #include <SIM/SIM_Geometry.h>
 
 #include "globalincludes.h"
+#include "CrowdSim.h"
 
 #define TEST_BASE_PLUGIN
 
@@ -44,6 +45,10 @@ namespace HDK_Sample {
 
 		virtual void getOutputInfoSubclass(int inputidx, DOP_InOutInfo &info) const;
 
+	private:
+		Results mSimResults;
+		Scene mScene;
+		PeepSimConfig mConfig;
 	};
 
 	class AgentNode : public SOP_Node {
@@ -82,7 +87,16 @@ namespace HDK_Sample {
 
 		void update(fpreal timeStep);
 
+		void updateResults(Results *results);
+
+		void updateScene(Scene *scene);
+
+
 	private:
+
+		Results *mSimResults;
+
+		Scene *mScene;
 
 		// Vector of primitives
 		std::vector<GEO_Primitive*> mAgents;

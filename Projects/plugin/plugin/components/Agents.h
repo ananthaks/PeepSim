@@ -28,28 +28,7 @@ struct AgentTemplate {
 
 using Agent = AgentTemplate<T, dim>;
 
-class Agents {
-
-private:
-  int mNumAgents;
-  float mMass;
+struct AgentGroup {
+  Vector3 mDebugColor;
   std::vector<Agent> mAgents;
-
-public:
-
-  Agents(int numAgents);
-
-  void setMass(float mass);
-
-  int getNumAgents() const;
-
-  Agent& getAgent(int index);
-
-  void addAgent(const Vector &startPos, const Vector &target,
-                const Vector &plannedVelocity, float mass = 1.0f, float radius = 0.25f);
-
-  void outputFrame(unsigned int frameId);
-
-    std::vector<Vector> getAllPositions();
-
 };
