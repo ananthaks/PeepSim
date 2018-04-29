@@ -102,7 +102,7 @@ namespace HDK_Sample {
 
 		void setNumAgents(int numAgents);
 
-		void initialize();
+		void initialize(fpreal frame);
 
 		GEO_Primitive* addAgent(fpreal x, fpreal y, fpreal z);
 
@@ -141,12 +141,24 @@ namespace HDK_Sample {
 			evalFloats("sourcePos", pos.data(), n);
 		}
 
+		void SHAPE_SIZE(fpreal n, UT_Vector2R &pos) {
+			evalFloats("shapeSize", pos.data(), n);
+		}
+
 		fpreal AGENT_MASS(fpreal n) {
 			return evalFloat("agentMass", 0, n);
 		}
 
 		fpreal AGENT_RADIUS(fpreal n) {
 			return evalFloat("agentMass", 0, n);
+		}
+
+		int SAMPLE_SHAPE(fpreal n) {
+			return evalInt("shapeMenu", 0, n);
+		}
+
+		int SAMPLE_METHOD(fpreal n) {
+			return evalInt("methodMenu", 0, n);
 		}
 	};
 
