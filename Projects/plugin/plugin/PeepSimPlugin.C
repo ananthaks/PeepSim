@@ -290,6 +290,8 @@ int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Tem
 }
 
 void AgentNode::initialize(fpreal frame) {
+	
+	OP_Context myContext(frame);
 
 	int numAgents = NUM_AGENTS(frame);
 	float mass = AGENT_MASS(frame);
@@ -306,19 +308,36 @@ void AgentNode::initialize(fpreal frame) {
 	int sampleShape = SAMPLE_SHAPE(frame);
 	int sampleMethod = SAMPLE_METHOD(frame);
 
-	mNumAgents = mAgentgroup.mAgents.size();
+	mNumAgents = numAgents;
 
 	printf("Initializing nodes %d \n ", mNumAgents);
 
 	gdp->clearAndDestroy();
 
+	float width = size[0] / (float)mNumAgents;
+	float height = size[1] / (float)mNumAgents;
+
+	const GU_Detail *geometry = fetchAgentObj(myContext);
+
 	for (int i = 0; i < mNumAgents; ++i) {
 
-		float xPos = mAgentgroup.mAgents[i].mCurrPosition.x;
+		float xPos = source[0] +  i * width;
 		float yPos = 0;
-		float zPos = mAgentgroup.mAgents[i].mCurrPosition.y;
+		float zPos = source[1] + i * height;
 
-		mAgentgroup.mAgents[i].mCurrGeo = addAgent(xPos, yPos, zPos);
+		Agent newAgent;
+
+		newAgent.mMass = mass;
+		newAgent.mRadius = radius;
+
+		newAgent.mStartPosition = Vector(source[0], source[1]);
+		newAgent.mCurrPosition = newAgent.mStartPosition;
+		newAgent.mTargetPosition = Vector(target[0], target[1]);
+		newAgent.mReference = geometry;
+
+		newAgent.mCurrGeo = addAgent(xPos, yPos, zPos);
+
+		mAgentgroup.mAgents.push_back(newAgent);
 	}
 
 }
@@ -377,14 +396,16 @@ OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 
 	fpreal reset = 1;
 
+	initialize(currframe);
+
 	if (!mInitialized)
 	{
-		initialize(currframe);
+		
 		mInitialized = true;
 	}
 	else
 	{
-		update(currframe);
+		//update(currframe);
 	}
 
 	return error();
@@ -394,7 +415,9 @@ const GU_Detail* AgentNode::fetchAgentObj(OP_Context& context) {
 
 	OP_Node *inputGeometry = getInput(0);
 
-	printf("Input Geometry is %s \n", inputGeometry->getOperator()->getName().toStdString());
+	if (inputGeometry == nullptr) {
+		return nullptr;
+	}
 
 	SOP_Node *geo = ((SOP_Node*)CAST_SOPNODE(inputGeometry));
 
