@@ -82,11 +82,36 @@ static PRM_Name loadFileCommand("loadFile", "Load Scene from File");
 /*
 * The GUI parameters to the agent node
 */
-static PRM_Name targetPosition("targetPos", "Target Position");
-static PRM_Name sourcePosition("sourcePos", "Source Position");
+
+static PRM_Name numAgentsName("numAgents", "Number of Agents");
 static PRM_Name agentMassName("agentMass", "Agent Mass");
 static PRM_Name agentRadiusName("agentRadius", "Agent Radius");
-static PRM_Name addAgentCommand("addAgent", "Add");
+
+static PRM_Name samplingShapeChoiceName("shapeMenu", "Sampling Shape");
+static PRM_Name samplingMethodChoiceName("methodMenu", "Sampling Method");
+
+static PRM_Name samplingShapeChoice[] =
+{
+	PRM_Name("shapechoice1", "Square"),
+	PRM_Name("shapechoice2", "Disc"),
+	PRM_Name(0)
+};
+static PRM_ChoiceList samplingShapeChoiceMenu(PRM_CHOICELIST_SINGLE, samplingShapeChoice);
+
+static PRM_Name samplingMethodChoice[] =
+{
+	PRM_Name("sampchoice2", "Grid"),
+	PRM_Name("sampchoice1", "Random"),
+	PRM_Name("sampchoice3", "Stratified"),
+	PRM_Name(0)
+};
+static PRM_ChoiceList samplingMethodChoiceMenu(PRM_CHOICELIST_SINGLE, samplingMethodChoice);
+
+static PRM_Name shapeSize("shapeSize", "Shape Size");
+
+static PRM_Name targetPosition("targetPos", "Target Position");
+static PRM_Name sourcePosition("sourcePos", "Source Position");
+
 
 /*
 * The GUI parameters to the environment node
@@ -96,17 +121,25 @@ static PRM_Name collisionMarchingStepsName("collisionSteps", "Max Env Collision 
 /*
 * Declare the defaults of the defined parameters
 */
+
+static PRM_Default numAgentsDefault(1);
+static PRM_Default defaultAgentMassDefault(1.0);
+static PRM_Default defaultAgentRadiusDefault(0.25);
+static PRM_Default shapeSizeDefault[] = {
+	PRM_Default(5.0),
+	PRM_Default(5.0),
+};
+
 static PRM_Default filePathDefault(0.0, "P:\\ubuntu\\PeepSim\\Projects\\src\\scenes\\scene_5.json");
 static PRM_Default velocityBlendDefault(0.4);
 static PRM_Default maxVelocityDefault(2.0);
 static PRM_Default maxStabilityIterationsDefault(10);
 static PRM_Default maxIterationsDefault(5);
-static PRM_Default defaultAgentMassDefault(1.0);
-static PRM_Default defaultAgentRadiusDefault(0.25);
+
 static PRM_Default collisionMarchingStepsDefault(1000);
 static PRM_Default targetPositionDefault[] = {
-	PRM_Default(0.0),
-	PRM_Default(0.0),
+	PRM_Default(10.0),
+	PRM_Default(10.0),
 };
 static PRM_Default sourcePositionDefault[] = {
 	PRM_Default(0.0),
@@ -118,15 +151,21 @@ static PRM_Default sourcePositionDefault[] = {
 */
 PRM_Template AgentNode::mParameterList[] = {
 
-	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &agentMassName,
-	&defaultAgentMassDefault, 0),
-	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &agentRadiusName,
-	&defaultAgentRadiusDefault, 0),
+	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &agentMassName, &defaultAgentMassDefault, 0),
+
+	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &agentRadiusName, &defaultAgentRadiusDefault, 0),
+
+	PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &numAgentsName, &numAgentsDefault, 0),
+
+	PRM_Template(PRM_ORD, 1, &samplingShapeChoiceName, 0, &samplingShapeChoiceMenu),
+
+	PRM_Template(PRM_ORD, 1, &samplingMethodChoiceName, 0, &samplingMethodChoiceMenu),
+
+	PRM_Template(PRM_XYZ_J,  2, &shapeSize, shapeSizeDefault, 0),
 
 	PRM_Template(PRM_XYZ_J,  2, &targetPosition, targetPositionDefault, 0),
-	PRM_Template(PRM_XYZ_J,  2, &sourcePosition, sourcePositionDefault, 0),
 
-	PRM_Template(PRM_CALLBACK, 1, &addAgentCommand, 0, 0, 0, AgentNode::addAgentCallback),
+	PRM_Template(PRM_XYZ_J,  2, &sourcePosition, sourcePositionDefault, 0),
 
 	PRM_Template()
 };
@@ -248,11 +287,22 @@ int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Tem
 
 }
 
-void AgentNode::initialize() {
+void AgentNode::initialize(fpreal frame) {
 
-	if (mNumAgents == mAgentgroup.mAgents.size()) {
-		return;
-	}
+	int numAgents = NUM_AGENTS(frame);
+	float mass = AGENT_MASS(frame);
+	float radius = AGENT_RADIUS(frame);
+
+	UT_Vector2R size;
+	UT_Vector2R source;
+	UT_Vector2R target;
+	
+	SHAPE_SIZE(frame, size);
+	SOURCE_POS(frame, source);
+	TARGET_POS(frame, target);
+
+	int sampleShape = SAMPLE_SHAPE(frame);
+	int sampleMethod = SAMPLE_METHOD(frame);
 
 	mNumAgents = mAgentgroup.mAgents.size();
 
@@ -327,7 +377,7 @@ OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 
 	if (!mInitialized)
 	{
-		initialize();
+		initialize(currframe);
 		mInitialized = true;
 	}
 	else
