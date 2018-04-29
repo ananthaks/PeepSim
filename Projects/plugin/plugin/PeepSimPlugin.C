@@ -706,7 +706,9 @@ void PeepSimSolver::updateScene(fpreal time) {
 		parent->getAllChildren(siblings);
 
 		OP_Node *crowdSourceNode = nullptr;
+		OP_Node *environmentNode = nullptr;
 		OP_Node *agentMergeNode = nullptr;
+		OP_Node *envMergeNode = nullptr;
 
 		// Get the CrowdSource Node
 		for (OP_Node* node : siblings) {
@@ -735,8 +737,6 @@ void PeepSimSolver::updateScene(fpreal time) {
 
 			int m = agentMergeNode->getInputsArraySize();
 
-			printf("PeepSimSolver::updateScene: Number of nodes in parent is %d \n", m);
-
 			for (int i = 0; i < m; ++i) {
 				OP_Node *node = agentMergeNode->getInput(i);
 				AgentNode *agentNode = ((AgentNode*)CAST_SOPNODE(node));
@@ -746,6 +746,48 @@ void PeepSimSolver::updateScene(fpreal time) {
 		else {
 			printf("PeepSimSolver::updateScene: Can't find `Merge Node \n");
 		}
+
+
+		// Get the Environment Node
+		for (OP_Node* node : siblings) {
+			if (node->getName().compare("Environment", false) == 0) {
+				environmentNode = node;
+				break;
+			}
+		}
+
+		crowdData.clear();
+
+		// Get the agent group merge Node
+		if (environmentNode != nullptr) {
+			environmentNode->getAllChildren(crowdData);
+			for (OP_Node* node : crowdData) {
+				if (node->getOperator()->getName().compare("merge", false) == 0) {
+					envMergeNode = node;
+					break;
+				}
+			}
+		}
+		else {
+			printf("PeepSimSolver::updateScene: Can't find Environment Merge Node \n");
+		}
+
+		// Get all the agent groups which needs to be shown
+		if (envMergeNode != nullptr) {
+
+			int m = envMergeNode->getInputsArraySize();
+
+			for (int i = 0; i < m; ++i) {
+				OP_Node *node = envMergeNode->getInput(i);
+				printf("The Environment nodes are %s \n", node->getOperator()->getName());
+
+			}
+		}
+		else {
+			printf("PeepSimSolver::updateScene: Can't find `Merge Node \n");
+		}
+
+
 	}
 
 	std::vector<AgentGroup*> mAllAgentGroups;
