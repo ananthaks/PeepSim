@@ -34,14 +34,21 @@ Results Solver::solve(Scene& scene) {
 
   int count = 0;
 
+  printf("The size in solver is %d \n", scene.mAgentGroups.size());
+
   for (SizeType groupIdx = 0; groupIdx < scene.mAgentGroups.size(); groupIdx++) {
     auto group = scene.mAgentGroups[groupIdx];
 
-    for (SizeType agentIdx = 0; agentIdx < group.mAgents.size(); agentIdx++) {
-      mAgents[count] = &(scene.mAgentGroups[groupIdx].mAgents[agentIdx]);
+	printf("The number of agents is is %d \n", group->mAgents.size());
+
+    for (SizeType agentIdx = 0; agentIdx < group->mAgents.size(); agentIdx++) {
+      mAgents[count] = &(scene.mAgentGroups[groupIdx]->mAgents[agentIdx]);
+	  mAgents[count]->mCachedPos.clear();
       ++count;
     }
   }
+
+  printf("Break Point 1");
 
 #ifdef PATH_FINDER_ON
   mPathFinder.initialize(scene);
@@ -59,6 +66,8 @@ Results Solver::solve(Scene& scene) {
   const int numIterations = mConfig.mFPS * mConfig.mSimualtionDuration;
 
   results.mPositions.reserve(numIterations);
+
+  printf("Break Point 2");
 
   for (int frame = 0; frame < numIterations; ++frame) {
 
@@ -163,11 +172,11 @@ Results Solver::solve(Scene& scene) {
       auto& group = scene.mAgentGroups[gIdx];
 
       // For each Group: Agents i & j get cohesion
-      for (SizeType i = 0; i < group.mAgents.size(); ++i) {
-        Agent& agent = scene.mAgentGroups[gIdx].mAgents[i];
+      for (SizeType i = 0; i < group->mAgents.size(); ++i) {
+        Agent& agent = scene.mAgentGroups[gIdx]->mAgents[i];
         Vector viscosityVel = Vector(0, 0);
 
-        for (SizeType j = 0; j < group.mAgents.size(); ++j) {
+        for (SizeType j = 0; j < group->mAgents.size(); ++j) {
           if (i == j) {
             continue;
           }
@@ -193,9 +202,13 @@ Results Solver::solve(Scene& scene) {
         agent->mCurrVelocity *= (mConfig.mMaxVelocity / speed);
       }
       agent->mCurrPosition = agent->mProposedPosition;
+
+	  agent->mCachedPos.push_back(agent->mCurrPosition);
     }
 
-    results.mPositions.push_back(scene.getAllPositions());
+    //results.mPositions.push_back(scene.getAllPositions());
+
+
   }
 
   printf("Number of agents in solver is %d \n", results.mPositions[0].size());

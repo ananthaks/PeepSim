@@ -23,7 +23,10 @@ struct AgentTemplate {
   Vector mForce; // f
 
   int currTarget;
+
   std::vector<Vector> mPlannedPath; // Path to Target
+
+  std::vector<Vector> mCachedPos;
 
   const GU_Detail *mReference;
   GEO_Primitive *mCurrGeo;

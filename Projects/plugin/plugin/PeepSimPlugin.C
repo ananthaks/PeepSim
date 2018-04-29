@@ -76,6 +76,7 @@ static PRM_Name maxVelocityName("maxVelocity", "Max Velocity");
 static PRM_Name maxStabilityIterationsName("maxStabilityIterations", "Max Stability Iterations");
 static PRM_Name maxIterationsName("maxIterations", "Max Iterations");
 static PRM_Name generateCommandName("generateCommand", "Update");
+static PRM_Name simulateSceneCommand("simulateScene", "Simulate Scene");
 
 /*
 * The GUI parameters to the agent node
@@ -232,6 +233,10 @@ int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Tem
 	
 	me->getAgentGroup()->mAgents.push_back(newAgent);
 
+	printf("AgentNode :: The position of the node was %f %f \n", source[0], source[1]);
+	printf("AgentNode :: The position of the node was %f %f \n", me->getAgentGroup()->mAgents[0].mCurrPosition.x, me->getAgentGroup()->mAgents[0].mCurrPosition.y);
+
+
 	me->mInitialized = false;
 
 	// For some reason, we cannot add geometry from this thread
@@ -280,21 +285,23 @@ GEO_Primitive* AgentNode::addAgent(fpreal x, fpreal y, fpreal z) {
 
 void AgentNode::update(fpreal timeStep) {
 
-	printf("Agent Update >> \n");
-
 	int frameId = timeStep;
+
+
 
 	for (int i = 0; i < mAgentgroup.mAgents.size(); ++i) {
 
 		GEO_Primitive *sphere = mAgentgroup.mAgents[i].mCurrGeo;
 
-		if (sphere == nullptr) {
+		if (sphere == nullptr || frameId >= mAgentgroup.mAgents[i].mCachedPos.size()) {
 			continue;
 		}
-
-		float xPos = mAgentgroup.mAgents[i].mCurrPosition.x;
+		
+		float xPos = mAgentgroup.mAgents[i].mCachedPos[frameId].x;
 		float yPos = 0;
-		float zPos = mAgentgroup.mAgents[i].mCurrPosition.y;
+		float zPos = mAgentgroup.mAgents[i].mCachedPos[frameId].y;
+
+		printf("Agent Update  Geometry found %f %f >> \n", xPos, zPos);
 
 		sphere->setPos3(0, UT_Vector3F(xPos, yPos, zPos));
 
@@ -370,6 +377,8 @@ PRM_Template PeepSimSolver::myTemplateList[] = {
 	// each object.
 	PRM_Template(PRM_INT_J,	1, &theInputIndexName, PRMzeroDefaults),
 
+	PRM_Template(PRM_CALLBACK, 1, &simulateSceneCommand, 0, 0, 0, PeepSimSolver::simulateScene),
+
 	PRM_Template()
 };
 
@@ -382,6 +391,16 @@ PeepSimSolver::PeepSimSolver(OP_Network *net, const char *name, OP_Operator *op)
 
 PeepSimSolver::~PeepSimSolver()
 {}
+
+int PeepSimSolver::simulateScene(void* data, int index, float time, const PRM_Template*) {
+	fpreal now = time;
+
+	// Fetch an instance of self
+	PeepSimSolver* me = (PeepSimSolver*)data;
+	me->updateScene(now);
+
+	return 0;
+}
 
 void PeepSimSolver::getInputInfoSubclass(int inputidx, DOP_InOutInfo &info) const
 {
@@ -406,6 +425,10 @@ void PeepSimSolver::getOutputInfoSubclass(int outputidx, DOP_InOutInfo &info) co
 */
 void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArray &objects, DOP_Engine &engine)
 {
+	
+}
+
+void PeepSimSolver::updateScene(fpreal time) {
 	// Channel manager has time info for us
 	CH_Manager *chman = OPgetDirector()->getChannelManager();
 
@@ -417,13 +440,15 @@ void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArr
 	std::vector<AgentNode*> mAgentGroupNodes;
 
 	AgentNode *agents = nullptr;
-	
+
+	OP_Context myContext(time);
+
 	// Start Fetching the agent data from Houdini
 	OP_Node *parent = getParent();
 	if (parent != nullptr) {
 
 		parent = parent->getParent();
-		
+
 		OP_NodeList crowdData;
 		OP_NodeList siblings;
 		OP_NodeList agentGroups;
@@ -451,51 +476,70 @@ void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArr
 				}
 			}
 		}
+		else {
+			printf("PeepSimSolver::updateScene: Can't find Crowd Source Node \n");
+		}
 
 		// Get all the agent groups which needs to be shown
 		if (agentMergeNode != nullptr) {
-			agentMergeNode->getAllChildren(agentGroups);
-			for (OP_Node* node : agentGroups) {
+
+			int m = agentMergeNode->getInputsArraySize();
+
+			printf("PeepSimSolver::updateScene: Number of nodes in parent is %d \n", m);
+
+			for (int i = 0; i < m; ++i) {
+				OP_Node *node = agentMergeNode->getInput(i);
 				AgentNode *agentNode = ((AgentNode*)CAST_SOPNODE(node));
 				mAgentGroupNodes.push_back(agentNode);
 			}
+		}
+		else {
+			printf("PeepSimSolver::updateScene: Can't find `Merge Node \n");
 		}
 	}
 
 	std::vector<AgentGroup*> mAllAgentGroups;
 
+
+	int numAgents = 0;
+
+
 	for (AgentNode *node : mAgentGroupNodes) {
+		printf("Agent Group in Node Size: %d \n", node->getAgentGroup()->mAgents.size());
 		mAllAgentGroups.push_back(node->getAgentGroup());
+		numAgents += node->getAgentGroup()->mAgents.size();
 	}
 
-	printf("PeepSimSolver::processObjectsSubclass >>>> \n");
-
+	printf("PeepSimSolver::updateScene >>>> \n");
 	// Run the Crowd Simulation and cook the agents node
-	if (!hasCookedSop) {
 
-		//mScene.addAgentGroups(mAllAgentGroups);
-		
-		// We can remove this later
-		mScene.loadFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
+	mScene = Scene(mConfig);
+	mScene.addAgentGroups(mAllAgentGroups);
+	mScene.mNumAgents = numAgents;
 
-		CrowdSim simulation = CrowdSim(mConfig, mScene);
-		//simulation.loadSceneFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
-		mSimResults = simulation.evaluate();
+	// TODO: add colliders
 
-		printf("Number of Frames in results is %d \n", mSimResults.mPositions.size());
-		printf("Number of Agents in results is %d \n", mSimResults.mPositions[0].size());
-		hasCookedSop = true;
+	// We can remove this later
+	//mScene.loadFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
 
-		for (AgentNode *agent : mAgentGroupNodes) {
-			if (agents != nullptr) {
-				agents->updateResults(&mSimResults);
-				agents->updateScene(&mScene);
-				agents->mInitialized = false;
+	CrowdSim simulation = CrowdSim(mConfig, mScene);
+	//simulation.loadSceneFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
+	mSimResults = simulation.evaluate();
 
-				OP_Context context;
-				context.setFrame(currframe);
-				agents->cook(context);
-			}
+	printf("Number of Frames in results is %d \n", mSimResults.mPositions.size());
+	printf("Number of Agents in results is %d \n", mSimResults.mPositions[0].size());
+	hasCookedSop = true;
+
+	for (AgentNode *agent : mAgentGroupNodes) {
+		if (agent != nullptr) {
+			agent->updateScene(&mScene);
+			agent->mInitialized = false;
+
+			printf("Number of Cached Positions in this Group Node %d \n", agent->getAgentGroup()->mAgents[0].mCachedPos.size());
+
+			OP_Context context;
+			context.setFrame(currframe);
+			agent->cook(context);
 		}
 	}
 }

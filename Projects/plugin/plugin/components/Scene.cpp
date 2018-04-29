@@ -11,10 +11,12 @@ Scene::~Scene() {
 		  collider = nullptr;
 	  }
   }
-}
 
-AgentGroup& Scene::getAgentGroup(int index) {
-  return mAgentGroups[index];
+  if (isFileLoaded) {
+	  for (auto& group : mAgentGroups) {
+		  delete group;
+	  }
+  }
 }
 
 void Scene::addAgent(const Vector& startPos, const Vector& target, const Vector& plannedVelocity,
@@ -53,6 +55,8 @@ void Scene::loadFromFile(String filePath) {
 
   mNumAgents = 0;
 
+  isFileLoaded = true;
+
   for (Json::iterator it = agentGroups.begin(); it != agentGroups.end(); ++it) {
     /* Structure:
      *
@@ -71,7 +75,7 @@ void Scene::loadFromFile(String filePath) {
       group["relativeTarget"][0].get<float>(), group["relativeTarget"][1].get<float>()
     };
 
-    AgentGroup agentGroup;
+	AgentGroup *agentGroup = new AgentGroup();
 
     float mass = group["mass"].get<float>();
     float radius = group["radius"].get<float>();
@@ -84,7 +88,7 @@ void Scene::loadFromFile(String filePath) {
 
         Vector start = Vector(startPosition[0] + xOffset, startPosition[1] + yOffset);
         Vector target = start + Vector(relativeTarget[0], relativeTarget[1]);
-        addAgent(start, target, Vector(0, 0), mass, radius, &agentGroup);
+        addAgent(start, target, Vector(0, 0), mass, radius, agentGroup);
         ++mNumAgents;
       }
     }
@@ -119,8 +123,8 @@ std::vector<Vector> Scene::getAllPositions() const {
 
     auto group = mAgentGroups[i];
 
-    for (int j = 0; j < group.mAgents.size(); j++) {
-      result.push_back(group.mAgents[j].mCurrPosition);
+    for (int j = 0; j < group->mAgents.size(); j++) {
+      result.push_back(group->mAgents[j].mCurrPosition);
     }
   }
 
@@ -128,7 +132,8 @@ std::vector<Vector> Scene::getAllPositions() const {
 }
 
 void Scene::addAgentGroups(std::vector<AgentGroup*> &mAllAgentGroups) {
-	// TODO
+	mAgentGroups = mAllAgentGroups;
+
 }
 
 

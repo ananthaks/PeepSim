@@ -25,7 +25,6 @@ struct Scene {
   void addAgent(const Vector& startPos, const Vector& target, const Vector& plannedVelocity,
                 float mass, float radius, AgentGroup* group);
 
-  AgentGroup& getAgentGroup(int index);
   std::vector<Vector> getAllPositions() const;
   void outputFrame(unsigned int frameId);
 
@@ -35,7 +34,9 @@ struct Scene {
 
   int mNumAgents{0};
 
-  std::vector<AgentGroup> mAgentGroups;
+  bool isFileLoaded{ false };
+
+  std::vector<AgentGroup*> mAgentGroups;
   std::vector<Collider*> mColliders;
   SizeType getNumAgents() const;
 

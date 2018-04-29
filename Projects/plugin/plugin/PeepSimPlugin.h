@@ -38,6 +38,10 @@ namespace HDK_Sample {
 
 		virtual ~PeepSimSolver();
 
+		void updateScene(fpreal time);
+
+		static int simulateScene(void* data, int index, float time, const PRM_Template*);
+
 	protected:
 
 		virtual void processObjectsSubclass(fpreal time, int foroutputidx, const SIM_ObjectArray &objects, DOP_Engine &engine);
