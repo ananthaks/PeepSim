@@ -77,6 +77,7 @@ static PRM_Name maxStabilityIterationsName("maxStabilityIterations", "Max Stabil
 static PRM_Name maxIterationsName("maxIterations", "Max Iterations");
 static PRM_Name generateCommandName("generateCommand", "Update");
 static PRM_Name simulateSceneCommand("simulateScene", "Simulate Scene");
+static PRM_Name loadFileCommand("loadFile", "Load Scene from File");
 
 /*
 * The GUI parameters to the agent node
@@ -95,7 +96,7 @@ static PRM_Name collisionMarchingStepsName("collisionSteps", "Max Env Collision 
 /*
 * Declare the defaults of the defined parameters
 */
-static PRM_Default filePathDefault(0.0, "");
+static PRM_Default filePathDefault(0.0, "P:\\ubuntu\\PeepSim\\Projects\\src\\scenes\\scene_5.json");
 static PRM_Default velocityBlendDefault(0.4);
 static PRM_Default maxVelocityDefault(2.0);
 static PRM_Default maxStabilityIterationsDefault(10);
@@ -385,6 +386,10 @@ PRM_Template PeepSimSolver::myTemplateList[] = {
 
 	PRM_Template(PRM_CALLBACK, 1, &simulateSceneCommand, 0, 0, 0, PeepSimSolver::simulateScene),
 
+  PRM_Template(PRM_STRING, PRM_Template::PRM_EXPORT_MIN, 1, &filePath, &filePathDefault, 0),
+
+  PRM_Template(PRM_CALLBACK, 1, &loadFileCommand, 0, 0, 0, PeepSimSolver::loadFromFileCallback),
+
 	PRM_Template()
 };
 
@@ -406,6 +411,16 @@ int PeepSimSolver::simulateScene(void* data, int index, float time, const PRM_Te
 	me->updateScene(now);
 
 	return 0;
+}
+
+int PeepSimSolver::loadFromFileCallback(void* data, int index, float time, const PRM_Template*) {
+  fpreal now = time;
+
+  // Fetch an instance of self
+  PeepSimSolver* me = (PeepSimSolver*)data;
+  me->loadFromFile(now);
+
+  return 0;
 }
 
 void PeepSimSolver::getInputInfoSubclass(int inputidx, DOP_InOutInfo &info) const
@@ -432,6 +447,86 @@ void PeepSimSolver::getOutputInfoSubclass(int outputidx, DOP_InOutInfo &info) co
 void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArray &objects, DOP_Engine &engine)
 {
 	
+}
+
+void PeepSimSolver::loadFromFile(fpreal time) {
+  UT_String filePath;
+  FILEPATH(filePath, time);
+
+  OP_Context myContext(time);
+
+  OP_Node *parent = getParent();
+  if (parent == nullptr) {
+    printf("Load Failed: Can't find parent \n");
+    return;
+  }
+
+  parent = parent->getParent();
+
+  OP_NodeList crowdData;
+  OP_NodeList siblings;
+  OP_NodeList agentGroups;
+
+  parent->getAllChildren(siblings);
+
+  OP_Node *crowdSourceNode = nullptr;
+  OP_Node *agentMergeNode = nullptr;
+
+  // Get the CrowdSource Node
+  for (OP_Node* node : siblings) {
+    if (node->getName().compare("CrowdSource", false) == 0) {
+      crowdSourceNode = node;
+      break;
+    }
+  }
+
+  // Get the agent group merge Node
+  if (crowdSourceNode == nullptr) {
+    printf("Load Failed: Can't find crowdSource Node \n");
+    return;
+  }
+
+  crowdSourceNode->getAllChildren(crowdData);
+  for (OP_Node* node : crowdData) {
+    if (node->getOperator()->getName().compare("merge", false) == 0) {
+      agentMergeNode = node;
+      break;
+    }
+  }
+
+  if (agentMergeNode == nullptr) {
+    printf("Load Failed: Can't find Merge Node \n");
+    return;
+  }
+
+  std::string path = filePath.toStdString();
+
+  printf("Loading File From: %s \n", path.c_str());
+
+  Scene tempScene = Scene(mConfig);
+  tempScene.loadFromFile(path);
+
+  int count = 1;
+
+  /*for (auto& group : tempScene.mAgentGroups) {
+    std::string nodeName = "AgentGroup_1" + count;
+
+    OP_Node* node = ((OP_Network*)crowdSourceNode)->createNode("AgentGroup", nodeName);
+
+    if (node == nullptr) {
+      printf("Load Failed: Can't create node \n");
+      return;
+    }
+
+    if (!node->runCreateScript()) {
+      printf("Load Failed: Can't create script error \n");
+      return;
+    }
+
+    node->moveToGoodPosition();
+
+    printf("Load Passed: Created Node \n");
+  }*/
 }
 
 void PeepSimSolver::updateScene(fpreal time) {

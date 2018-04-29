@@ -39,8 +39,11 @@ namespace HDK_Sample {
 		virtual ~PeepSimSolver();
 
 		void updateScene(fpreal time);
+    void loadFromFile(fpreal time);
 
 		static int simulateScene(void* data, int index, float time, const PRM_Template*);
+
+    static int loadFromFileCallback(void* data, int index, float time, const PRM_Template*);
 
 	protected:
 
@@ -60,6 +63,11 @@ namespace HDK_Sample {
     fpreal  STABILITYITERATIONS(fpreal t) { return evalInt("maxStabilityIterations", 0, t); }
     fpreal  MAXITERATIONS(fpreal t) { return evalInt("maxIterations", 0, t); }
     fpreal  COLLISIONSTEPS(fpreal t) { return evalInt("collisionSteps", 0, t); }
+
+    void FILEPATH(UT_String &label, fpreal t)
+    {
+      evalString(label, "filePath", 0, t);
+    }
 	};
 
 	class AgentNode : public SOP_Node {
