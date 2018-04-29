@@ -640,28 +640,55 @@ void PeepSimSolver::loadFromFile(fpreal time) {
       return;
     }
 
-    //node->setInt("numAgents", 0, time, jsonNumAgents);
+    int sampler = -1;
+    int samplerShape = -1;
+
+    if (group["sampler"].get<std::string>() == "NONE") {
+      sampler = 0;
+    }
+    else if (group["sampler"].get<std::string>() == "RANDOMIZED") {
+      sampler = 1;
+    }
+    else if (group["sampler"].get<std::string>() == "STRATIFIED") {
+      sampler = 2;
+    }
+
+    if (group["samplerShape"].get<std::string>() == "NONE") {
+      samplerShape = 0;
+    }
+    else if (group["samplerShape"].get<std::string>() == "SQUARE") {
+      samplerShape = 1;
+    }
+    else if (group["samplerShape"].get<std::string>() == "DISC") {
+      samplerShape = 2;
+    }
+
+    node->setInt("numAgents", 0, time, jsonNumAgents);
     node->setFloat("agentMass", 0, time, mass);
     node->setFloat("agentRadius", 0, time, radius);
 
-    //node->setFloat("shapeSize", 0, time, jsonSizeX);
-    //node->setFloat("shapeSize", 1, time, jsonSizeY);
+    node->setFloat("shapeSize", 0, time, jsonSizeX);
+    node->setFloat("shapeSize", 1, time, jsonSizeY);
 
-    //node->setFloat("targetPos", 0, time, jsonTargetPos[0]);
-    //node->setFloat("targetPos", 1, time, jsonTargetPos[1]);
-    //node->setFloat("targetPos", 2, time, jsonTargetPos[2]);
+    node->setFloat("targetPos", 0, time, jsonTargetPos[0]);
+    node->setFloat("targetPos", 1, time, jsonTargetPos[1]);
+    node->setFloat("targetPos", 2, time, jsonTargetPos[2]);
 
-    //node->setFloat("sourcePos", 0, time, jsonSourcePos[0]);
-    //node->setFloat("sourcePos", 1, time, jsonSourcePos[1]);
-    //node->setFloat("sourcePos", 2, time, jsonSourcePos[2]);
+    node->setFloat("sourcePos", 0, time, jsonSourcePos[0]);
+    node->setFloat("sourcePos", 1, time, jsonSourcePos[1]);
+    node->setFloat("sourcePos", 2, time, jsonSourcePos[2]);
+
+
+    node->setFloat("shapeChoice", 0, time, samplerShape);
+    node->setFloat("sampleChoice", 0, time, sampler);
 
     node->cook(myContext);
 
     agentMergeNode->setInput(agentMergeNode->getInputsArraySize(), node);
     node->moveToGoodPosition();
-
-    printf("Load Passed: Created Node \n");
   }
+
+  printf("Loading JSON Completed\n");
 }
 
 void PeepSimSolver::updateScene(fpreal time) {
