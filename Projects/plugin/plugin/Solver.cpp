@@ -31,7 +31,6 @@ Results Solver::solve(Scene& scene) {
   mAgents.resize(scene.mNumAgents);
 
 
-
   int count = 0;
 
   printf("The size in solver is %d \n", scene.mAgentGroups.size());
@@ -67,7 +66,11 @@ Results Solver::solve(Scene& scene) {
 
   results.mPositions.reserve(numIterations);
 
-  printf("Break Point 2");
+  printf("Break Point 2\n");
+  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mMass, scene.mAgentGroups[0]->mAgents[1].mRadius);
+  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mTargetPosition.x, scene.mAgentGroups[0]->mAgents[1].mTargetPosition.y);
+  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mStartPosition.x, scene.mAgentGroups[0]->mAgents[1].mStartPosition.y);
+  printf("Break Point 2\n");
 
   for (int frame = 0; frame < numIterations; ++frame) {
 
@@ -213,6 +216,13 @@ Results Solver::solve(Scene& scene) {
 
   printf("Number of agents in solver is %d \n", results.mPositions[0].size());
   printf("Number of mAgents is %d \n", mAgents.size());
+
+  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mMass, scene.mAgentGroups[0]->mAgents[1].mRadius);
+  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mCurrPosition.x, scene.mAgentGroups[0]->mAgents[1].mCurrPosition.y);
+  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mCurrVelocity.x, scene.mAgentGroups[0]->mAgents[1].mCurrVelocity.y);
+  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mCachedPos[1].x, scene.mAgentGroups[0]->mAgents[1].mCachedPos[1].y);
+
+
 
   return results;
 }

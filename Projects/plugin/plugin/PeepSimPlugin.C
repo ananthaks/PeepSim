@@ -359,8 +359,6 @@ void AgentNode::update(fpreal timeStep) {
 
 	int frameId = timeStep;
 
-
-
 	for (int i = 0; i < mAgentgroup.mAgents.size(); ++i) {
 
 		GEO_Primitive *sphere = mAgentgroup.mAgents[i].mCurrGeo;
@@ -396,16 +394,13 @@ OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 
 	fpreal reset = 1;
 
-	initialize(currframe);
-
-	if (!mInitialized)
+	if (currframe == reset)
 	{
-		
-		mInitialized = true;
+		initialize(currframe);
 	}
 	else
 	{
-		//update(currframe);
+		update(currframe);
 	}
 
 	return error();
@@ -640,10 +635,10 @@ void PeepSimSolver::loadFromFile(fpreal time) {
       return;
     }
 
-    int sampler = -1;
-    int samplerShape = -1;
+    int sampler = 0;
+    int samplerShape = 0;
 
-    if (group["sampler"].get<std::string>() == "NONE") {
+    if (group["sampler"].get<std::string>() == "GRID") {
       sampler = 0;
     }
     else if (group["sampler"].get<std::string>() == "RANDOMIZED") {
@@ -653,15 +648,15 @@ void PeepSimSolver::loadFromFile(fpreal time) {
       sampler = 2;
     }
 
-    if (group["samplerShape"].get<std::string>() == "NONE") {
+    if (group["samplerShape"].get<std::string>() == "SQUARE") {
       samplerShape = 0;
     }
-    else if (group["samplerShape"].get<std::string>() == "SQUARE") {
+    else if (group["samplerShape"].get<std::string>() == "DISC") {
       samplerShape = 1;
     }
-    else if (group["samplerShape"].get<std::string>() == "DISC") {
-      samplerShape = 2;
-    }
+
+	sampler = 1;
+	samplerShape = 1;
 
     node->setInt("numAgents", 0, time, jsonNumAgents);
     node->setFloat("agentMass", 0, time, mass);
@@ -672,15 +667,13 @@ void PeepSimSolver::loadFromFile(fpreal time) {
 
     node->setFloat("targetPos", 0, time, jsonTargetPos[0]);
     node->setFloat("targetPos", 1, time, jsonTargetPos[1]);
-    node->setFloat("targetPos", 2, time, jsonTargetPos[2]);
 
     node->setFloat("sourcePos", 0, time, jsonSourcePos[0]);
     node->setFloat("sourcePos", 1, time, jsonSourcePos[1]);
-    node->setFloat("sourcePos", 2, time, jsonSourcePos[2]);
 
-
-    node->setFloat("shapeChoice", 0, time, samplerShape);
-    node->setFloat("sampleChoice", 0, time, sampler);
+	
+    node->setInt("shapeMenu", 0, time, samplerShape);
+    node->setInt("methodMenu", 0, time, sampler);
 
     node->cook(myContext);
 
@@ -706,19 +699,19 @@ void PeepSimSolver::updateScene(fpreal time) {
 
 	OP_Context myContext(time);
 
-  float velocityBlend = VELOCITYBLEND(time);
-  float maxVelocity = MAXVELOCITY(time);
-  int stabilityIterations = STABILITYITERATIONS(time);
-  int maxIterations = MAXITERATIONS(time);
-  int collisionSteps = COLLISIONSTEPS(time);
+	float velocityBlend = VELOCITYBLEND(time);
+	float maxVelocity = MAXVELOCITY(time);
+	int stabilityIterations = STABILITYITERATIONS(time);
+	int maxIterations = MAXITERATIONS(time);
+	int collisionSteps = COLLISIONSTEPS(time);
 
-  mConfig = PeepSimConfig();
-  mConfig.mMaxVelocity = maxVelocity;
-  mConfig.mVelocityBlend = velocityBlend;
-  mConfig.mMaxStabilityIterations = stabilityIterations;
-  mConfig.mMaxIterations = maxIterations;
-  mConfig.mCollisionMarchSteps = collisionSteps;
-  mConfig.create();
+	mConfig = PeepSimConfig();
+	mConfig.mMaxVelocity = maxVelocity;
+	mConfig.mVelocityBlend = velocityBlend;
+	mConfig.mMaxStabilityIterations = stabilityIterations;
+	mConfig.mMaxIterations = maxIterations;
+	mConfig.mCollisionMarchSteps = collisionSteps;
+	mConfig.create();
 
 	// Start Fetching the agent data from Houdini
 	OP_Node *parent = getParent();
@@ -806,7 +799,7 @@ void PeepSimSolver::updateScene(fpreal time) {
 
 			for (int i = 0; i < m; ++i) {
 				OP_Node *node = envMergeNode->getInput(i);
-				printf("The Environment nodes are %s \n", node->getOperator()->getName());
+				printf("The Environment nodes are %s \n", node->getOperator()->getName().toStdString());
 
 			}
 		}
