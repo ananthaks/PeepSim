@@ -377,6 +377,12 @@ PRM_Template PeepSimSolver::myTemplateList[] = {
 	// each object.
 	PRM_Template(PRM_INT_J,	1, &theInputIndexName, PRMzeroDefaults),
 
+  PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &velocityBlendName, &velocityBlendDefault, 0),
+  PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &maxVelocityName, &maxVelocityDefault, 0),
+  PRM_Template(PRM_INT_J, 1, &maxStabilityIterationsName, &maxStabilityIterationsDefault),
+  PRM_Template(PRM_INT_J, 1, &maxIterationsName, &maxIterationsDefault),
+  PRM_Template(PRM_INT_J, 1, &collisionMarchingStepsName, &collisionMarchingStepsDefault),
+
 	PRM_Template(PRM_CALLBACK, 1, &simulateSceneCommand, 0, 0, 0, PeepSimSolver::simulateScene),
 
 	PRM_Template()
@@ -442,6 +448,20 @@ void PeepSimSolver::updateScene(fpreal time) {
 	AgentNode *agents = nullptr;
 
 	OP_Context myContext(time);
+
+  float velocityBlend = VELOCITYBLEND(time);
+  float maxVelocity = MAXVELOCITY(time);
+  int stabilityIterations = STABILITYITERATIONS(time);
+  int maxIterations = MAXITERATIONS(time);
+  int collisionSteps = COLLISIONSTEPS(time);
+
+  mConfig = PeepSimConfig();
+  mConfig.mMaxVelocity = maxVelocity;
+  mConfig.mVelocityBlend = velocityBlend;
+  mConfig.mMaxStabilityIterations = stabilityIterations;
+  mConfig.mMaxIterations = maxIterations;
+  mConfig.mCollisionMarchSteps = collisionSteps;
+  mConfig.create();
 
 	// Start Fetching the agent data from Houdini
 	OP_Node *parent = getParent();

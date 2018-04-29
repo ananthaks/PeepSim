@@ -54,6 +54,12 @@ namespace HDK_Sample {
 		Results mSimResults;
 		Scene mScene;
 		PeepSimConfig mConfig;
+
+    fpreal  VELOCITYBLEND(fpreal t) { return evalFloat("velocityBlend", 0, t); }
+    fpreal  MAXVELOCITY(fpreal t) { return evalFloat("maxVelocity", 0, t); }
+    fpreal  STABILITYITERATIONS(fpreal t) { return evalInt("maxStabilityIterations", 0, t); }
+    fpreal  MAXITERATIONS(fpreal t) { return evalInt("maxIterations", 0, t); }
+    fpreal  COLLISIONSTEPS(fpreal t) { return evalInt("collisionSteps", 0, t); }
 	};
 
 	class AgentNode : public SOP_Node {
