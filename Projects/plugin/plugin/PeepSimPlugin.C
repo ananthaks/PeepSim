@@ -39,12 +39,12 @@ using namespace HDK_Sample;
 void newSopOperator(OP_OperatorTable* table) {
 
 	table->addOperator(
-		new OP_Operator("AgentsNode", // Internal name
+		new OP_Operator("AgentGroup", // Internal name
 			"Agents", // UI name
 			AgentNode::myConstructor, // How to build the SOP
 			AgentNode::mParameterList, // My parameters
 			0, // Min # of sources
-			0, // Max # of sources
+			2, // Max # of sources
 			AgentNode::mLocalVariables, // Local variables
 			OP_FLAG_GENERATOR) // Flag it as generator
 	);
@@ -59,26 +59,37 @@ void newDopOperator(OP_OperatorTable *table)
 
 	op = new DOP_Operator("PluginBase", "PeepSimSolver",
 		PeepSimSolver::myConstructor,
-		PeepSimSolver::myTemplateList, 2, 9999, 0,
+		PeepSimSolver::myTemplateList, 0, 9999, 0,
 		0, 1);
 	table->addOperator(op);
 }
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Agent Node Start <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+static PRM_Name filePath("filePath", "File Path");
 
 /*
-* Declare the GUI parameters to the nodes
+* The GUI parameters to the solver node
 */
-static PRM_Name filePath("filePath", "File Path");
 static PRM_Name velocityBlendName("velocityBlend", "Velocity Blend");
 static PRM_Name maxVelocityName("maxVelocity", "Max Velocity");
 static PRM_Name maxStabilityIterationsName("maxStabilityIterations", "Max Stability Iterations");
 static PRM_Name maxIterationsName("maxIterations", "Max Iterations");
+static PRM_Name generateCommandName("generateCommand", "Update");
+
+/*
+* The GUI parameters to the agent node
+*/
+static PRM_Name targetPosition("targetPos", "Target Position");
+static PRM_Name sourcePosition("sourcePos", "Source Position");
 static PRM_Name defaultAgentMassName("defaultAgentMass", "Default Agent Mass");
 static PRM_Name defaultAgentRadiusName("defaultAgentRadius", "Default Agent Radius");
+static PRM_Name addAgentCommand("addAgent", "Add");
+
+/*
+* The GUI parameters to the environment node
+*/
 static PRM_Name collisionMarchingStepsName("collisionSteps", "Max Env Collision Steps");
-static PRM_Name generateCommandName("generateCommand", "Generate");
 
 /*
 * Declare the defaults of the defined parameters
@@ -91,28 +102,31 @@ static PRM_Default maxIterationsDefault(5);
 static PRM_Default defaultAgentMassDefault(1.0);
 static PRM_Default defaultAgentRadiusDefault(0.25);
 static PRM_Default collisionMarchingStepsDefault(1000);
-
+static PRM_Default targetPositionDefault[] = {
+	PRM_Default(0.0),
+	PRM_Default(0.0),
+	PRM_Default(0.0)
+};
+static PRM_Default sourcePositionDefault[] = {
+	PRM_Default(0.0),
+	PRM_Default(0.0),
+	PRM_Default(0.0)
+};
 
 /*
 * Package the declared parameters so that it can be used to add to the operator table
 */
 PRM_Template AgentNode::mParameterList[] = {
-	PRM_Template(PRM_STRING, PRM_Template::PRM_EXPORT_MIN, 1, &filePath, &filePathDefault, 0),
-	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &velocityBlendName, &velocityBlendDefault,
-	0),
-	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &maxVelocityName, &maxVelocityDefault, 0),
-	PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &maxStabilityIterationsName,
-	&maxStabilityIterationsDefault, 0),
-	PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &maxIterationsName, &maxIterationsDefault,
-	0),
+
 	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &defaultAgentMassName,
 	&defaultAgentMassDefault, 0),
 	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &defaultAgentRadiusName,
 	&defaultAgentRadiusDefault, 0),
-	PRM_Template(PRM_INT, PRM_Template::PRM_EXPORT_MIN, 1, &collisionMarchingStepsName,
-	&collisionMarchingStepsDefault, 0),
 
-	//PRM_Template(PRM_CALLBACK, 1, &generateCommandName, 0, 0, 0, PeepSimSolver::generateCallback),
+	PRM_Template(PRM_XYZ_J,  3, &targetPosition, targetPositionDefault, 0),
+	PRM_Template(PRM_XYZ_J,  3, &sourcePosition, sourcePositionDefault, 0),
+
+	PRM_Template(PRM_CALLBACK, 1, &addAgentCommand, 0, 0, 0, AgentNode::addAgentCallback),
 
 	PRM_Template()
 };
@@ -161,7 +175,7 @@ OP_Node* AgentNode::myConstructor(OP_Network* net, const char* name, OP_Operator
 
 
 AgentNode::AgentNode(OP_Network* net, const char* name, OP_Operator* op)
-	: SOP_Node(net, name, op), mNumAgents(0), mSimResults(nullptr), mScene(nullptr) {
+	: SOP_Node(net, name, op), mNumAgents(0), mSimResults(nullptr), mScene(nullptr), mAgentgroup(AgentGroup()) {
 	myCurrPoint = -1; // To prevent garbage values from being returned
 
 }
@@ -182,6 +196,25 @@ void AgentNode::updateResults(Results *results) {
 
 void AgentNode::updateScene(Scene *scene) {
 	mScene = scene;
+}
+
+int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Template*) {
+
+	fpreal now = time;
+
+	// Fetch an instance of self
+	AgentNode* me = (AgentNode*)data;
+
+	OP_Context myContext(time);
+
+	// me->doSomeThing()
+
+	// OR 
+
+	me->cookMySop(myContext); // recooks your sop, so you can read inputs again and do your thing
+
+	return 1;
+
 }
 
 void AgentNode::initialize(int numAgents) {
@@ -352,6 +385,8 @@ OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 
 	fpreal reset = 1;
 
+	const GU_Detail* mInputGeometry = fetchAgentObj(context);
+
 	if (currframe <= reset)
 	{
 		initialize(10);
@@ -361,6 +396,18 @@ OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 		update(currframe);
 	}
 	return error();
+}
+
+const GU_Detail* AgentNode::fetchAgentObj(OP_Context& context) {
+
+	OP_Node *inputGeometry = getInput(0);
+
+	printf("Input Geometry is %s \n", inputGeometry->getOperator()->getName().toStdString());
+
+	SOP_Node *geo = ((SOP_Node*)CAST_SOPNODE(inputGeometry));
+
+	return geo->getCookedGeo(context);
+
 }
 
 
@@ -434,23 +481,54 @@ void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArr
 	// This is the frame that we're cooking at...
 	fpreal currframe = chman->getSample(time);
 
-	//printf("The Frame is %f \n", currframe);
-
-	
 	// Fetch the input Crowd Source node
+
+	std::vector<AgentNode*> mAgentGroupNodes;
+
 	AgentNode *agents = nullptr;
 	
-	OP_NodeList crowdData;
+	// Start Fetching the agent data from Houdini
 	OP_Node *parent = getParent();
-
 	if (parent != nullptr) {
-		OP_Node *firstInput = parent->getInput(0);
-		if (firstInput != nullptr) {
-			firstInput->getAllChildren(crowdData);
+
+		parent = parent->getParent();
+		
+		OP_NodeList crowdData;
+		OP_NodeList siblings;
+		OP_NodeList agentGroups;
+
+		parent->getAllChildren(siblings);
+
+		OP_Node *crowdSourceNode = nullptr;
+		OP_Node *agentMergeNode = nullptr;
+
+		// Get the CrowdSource Node
+		for (OP_Node* node : siblings) {
+			if (node->getName().compare("CrowdSource", false) == 0) {
+				crowdSourceNode = node;
+				break;
+			}
 		}
-	}
-	if (crowdData.size() > 0) {
-		agents = ((AgentNode*)CAST_SOPNODE(crowdData(0)));
+
+		// Get the agent group merge Node
+		if (crowdSourceNode != nullptr) {
+			crowdSourceNode->getAllChildren(crowdData);
+			for (OP_Node* node : crowdData) {
+				if (node->getOperator()->getName().compare("merge", false) == 0) {
+					agentMergeNode = node;
+					break;
+				}
+			}
+		}
+
+		// Get all the agent groups which needs to be shown
+		if (agentMergeNode != nullptr) {
+			agentMergeNode->getAllChildren(agentGroups);
+			for (OP_Node* node : agentGroups) {
+				AgentNode *agentNode = ((AgentNode*)CAST_SOPNODE(node));
+				mAgentGroupNodes.push_back(agentNode);
+			}
+		}
 	}
 
 	printf("PeepSimSolver::processObjectsSubclass >>>> \n");

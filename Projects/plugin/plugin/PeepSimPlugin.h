@@ -14,6 +14,7 @@
 #include <SIM/SIM_Geometry.h>
 
 #include "globalincludes.h"
+#include "components\Agents.h"
 #include "CrowdSim.h"
 
 #define TEST_BASE_PLUGIN
@@ -69,6 +70,8 @@ namespace HDK_Sample {
 
 		virtual unsigned disableParms();
 
+		static int addAgentCallback(void* data, int index, float time, const PRM_Template*);
+
 		virtual OP_ERROR cookMySop(OP_Context& context);
 
 		virtual bool evalVariableValue(fpreal& val, int index, int thread);
@@ -91,12 +94,15 @@ namespace HDK_Sample {
 
 		void updateScene(Scene *scene);
 
+		const GU_Detail* fetchAgentObj(OP_Context& context);
 
 	private:
 
 		Results *mSimResults;
 
 		Scene *mScene;
+
+		AgentGroup mAgentgroup;
 
 		// Vector of primitives
 		std::vector<GEO_Primitive*> mAgents;
