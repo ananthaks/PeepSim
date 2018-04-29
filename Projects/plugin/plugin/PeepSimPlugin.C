@@ -82,8 +82,8 @@ static PRM_Name generateCommandName("generateCommand", "Update");
 */
 static PRM_Name targetPosition("targetPos", "Target Position");
 static PRM_Name sourcePosition("sourcePos", "Source Position");
-static PRM_Name defaultAgentMassName("defaultAgentMass", "Default Agent Mass");
-static PRM_Name defaultAgentRadiusName("defaultAgentRadius", "Default Agent Radius");
+static PRM_Name agentMassName("agentMass", "Agent Mass");
+static PRM_Name agentRadiusName("agentRadius", "Agent Radius");
 static PRM_Name addAgentCommand("addAgent", "Add");
 
 /*
@@ -105,12 +105,10 @@ static PRM_Default collisionMarchingStepsDefault(1000);
 static PRM_Default targetPositionDefault[] = {
 	PRM_Default(0.0),
 	PRM_Default(0.0),
-	PRM_Default(0.0)
 };
 static PRM_Default sourcePositionDefault[] = {
 	PRM_Default(0.0),
 	PRM_Default(0.0),
-	PRM_Default(0.0)
 };
 
 /*
@@ -118,13 +116,13 @@ static PRM_Default sourcePositionDefault[] = {
 */
 PRM_Template AgentNode::mParameterList[] = {
 
-	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &defaultAgentMassName,
+	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &agentMassName,
 	&defaultAgentMassDefault, 0),
-	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &defaultAgentRadiusName,
+	PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &agentRadiusName,
 	&defaultAgentRadiusDefault, 0),
 
-	PRM_Template(PRM_XYZ_J,  3, &targetPosition, targetPositionDefault, 0),
-	PRM_Template(PRM_XYZ_J,  3, &sourcePosition, sourcePositionDefault, 0),
+	PRM_Template(PRM_XYZ_J,  2, &targetPosition, targetPositionDefault, 0),
+	PRM_Template(PRM_XYZ_J,  2, &sourcePosition, sourcePositionDefault, 0),
 
 	PRM_Template(PRM_CALLBACK, 1, &addAgentCommand, 0, 0, 0, AgentNode::addAgentCallback),
 
@@ -175,7 +173,7 @@ OP_Node* AgentNode::myConstructor(OP_Network* net, const char* name, OP_Operator
 
 
 AgentNode::AgentNode(OP_Network* net, const char* name, OP_Operator* op)
-	: SOP_Node(net, name, op), mNumAgents(0), mSimResults(nullptr), mScene(nullptr), mAgentgroup(AgentGroup()) {
+	: SOP_Node(net, name, op), mNumAgents(0), mSimResults(nullptr), mScene(nullptr), mAgentgroup(AgentGroup()), mInitialized(false) {
 	myCurrPoint = -1; // To prevent garbage values from being returned
 
 }
@@ -184,6 +182,10 @@ AgentNode::~AgentNode() {}
 
 unsigned AgentNode::disableParms() {
 	return 0;
+}
+
+AgentGroup* AgentNode::getAgentGroup() {
+	return &mAgentgroup;
 }
 
 void AgentNode::setNumAgents(int numAgents) {
@@ -207,86 +209,63 @@ int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Tem
 
 	OP_Context myContext(time);
 
-	// me->doSomeThing()
+	const GU_Detail *geometry = me->fetchAgentObj(myContext);
 
-	// OR 
+	float mass = me->AGENT_MASS(now);
+	float radius = me->AGENT_RADIUS(now);
 
-	me->cookMySop(myContext); // recooks your sop, so you can read inputs again and do your thing
+	UT_Vector2R target;
+	UT_Vector2R source;
+
+	me->TARGET_POS(now, target);
+	me->SOURCE_POS(now, source);
+
+	Agent newAgent;
+
+	newAgent.mMass = mass;
+	newAgent.mRadius = radius;
+
+	newAgent.mStartPosition = Vector(source[0], source[1]);
+	newAgent.mCurrPosition = newAgent.mStartPosition;
+	newAgent.mTargetPosition = Vector(target[0], target[1]);
+	newAgent.mReference = geometry;
+	
+	me->getAgentGroup()->mAgents.push_back(newAgent);
+
+	me->mInitialized = false;
+
+	// For some reason, we cannot add geometry from this thread
+
+	//me->cookMySop(myContext); // recooks your sop, so you can read inputs again and do your thing
 
 	return 1;
 
 }
 
-void AgentNode::initialize(int numAgents) {
+void AgentNode::initialize() {
+
+	if (mNumAgents == mAgentgroup.mAgents.size()) {
+		return;
+	}
+
+	mNumAgents = mAgentgroup.mAgents.size();
 
 	printf("Initializing nodes %d \n ", mNumAgents);
 
-
-	/*float total = 2 * M_PI;
-
-	for (int i = 0; i < numAgents; ++i) {
-
-		float xPos = 5 * std::cos(i * total / (float)numAgent);
-		float zPos = 5 * std::sin(i * total / (float)numAgent);
-
-		GU_PrimSphereParms parms(gdp);
-		parms.freq = 1;
-
-		// Change this to some obj
-		GEO_Primitive *sphere = GU_PrimSphere::build(parms, GEO_PRIMSPHERE);
-		sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
-
-		mAgents.push_back(sphere);
-
-	}*/
-
-	if (mSimResults == nullptr) {
-		return;
-	}
-
-	if (mSimResults->mPositions.size() == 0) {
-		return;
-	}
-
-	if (mNumAgents == mSimResults->mPositions[0].size()) {
-		return;
-	}
-
-	mNumAgents = mSimResults->mPositions[0].size();
-
 	gdp->clearAndDestroy();
-	mAgents.clear();
-
-	UT_Matrix3D transform;
-	transform.scale(UT_Vector3R(0.1, 0.1, 0.1));
 
 	for (int i = 0; i < mNumAgents; ++i) {
-		
-		printf("Starting to Add sphere %d \n", i);
 
-		GU_PrimSphereParms parms(gdp);
-		parms.freq = 1;
-
-		float xPos = mSimResults->mPositions[0][i].x;
+		float xPos = mAgentgroup.mAgents[i].mCurrPosition.x;
 		float yPos = 0;
-		float zPos = mSimResults->mPositions[0][i].y;
+		float zPos = mAgentgroup.mAgents[i].mCurrPosition.y;
 
-		printf("Adding sphere %d at &f, &f, &f\n", i, xPos, yPos, zPos);
-
-		// Change this to some obj
-		GEO_Primitive *sphere = GU_PrimSphere::build(parms, GEO_PRIMSPHERE);
-		
-		//sphere->setLocalTransform(transform);
-		sphere->setPos3(0, UT_Vector3F(xPos, yPos, zPos));
-
-		mAgents.push_back(sphere);
-
+		mAgentgroup.mAgents[i].mCurrGeo = addAgent(xPos, yPos, zPos);
 	}
-
 
 }
 
-void AgentNode::addAgent(fpreal x, fpreal y, fpreal z) {
+GEO_Primitive* AgentNode::addAgent(fpreal x, fpreal y, fpreal z) {
 
 	GU_PrimSphereParms parms(gdp);
 	parms.freq = 1;
@@ -295,72 +274,31 @@ void AgentNode::addAgent(fpreal x, fpreal y, fpreal z) {
 
 	sphere->setPos3(0, UT_Vector3F(x, y, z));
 
-	UT_Matrix3D transform;
-	transform.scale(UT_Vector3R(0.1, 0.1, 0.1));
-	sphere->setLocalTransform(transform);
-
-	mAgents.push_back(sphere);
-	mNumAgents++;
+	return sphere;
 }
 
-void AgentNode::update(int agentId, fpreal x, fpreal y, fpreal z) {
-
-	
-}
 
 void AgentNode::update(fpreal timeStep) {
 
-	/*int period = 360;
-
-	float xPos, zPos, angle;
-	float total = 2 * M_PI;
-
-	int frameId = timeStep;
-
-	printf("Frame is %d and time step is %f \n", frameId, timeStep);
-
-
-	for (int i = 0; i < mAgents.size(); ++i) {
-
-		GEO_Primitive *sphere = mAgents[i];
-
-		float angle = i * total / (float)numAgent + frameId % 360;
-
-		float xPos = 5 * std::cos(angle);
-		float zPos = 5 * std::sin(angle);
-
-		sphere->setPos3(0, UT_Vector3F(xPos, 0, zPos));
-	}*/
-
-
-	if (mAgents.size() == 0) {
-		initialize(0);
-	}
-
 	printf("Agent Update >> \n");
 
-	if (mSimResults == nullptr) {
-		return;
-	}
-
-	if (mSimResults->mPositions.size() == 0) {
-		return;
-	}
-
 	int frameId = timeStep;
 
-	for (int i = 0; i < mNumAgents; ++i) {
+	for (int i = 0; i < mAgentgroup.mAgents.size(); ++i) {
 
-		GEO_Primitive *sphere = mAgents[i];
+		GEO_Primitive *sphere = mAgentgroup.mAgents[i].mCurrGeo;
 
-		float xPos = mSimResults->mPositions[frameId][i].x;
+		if (sphere == nullptr) {
+			continue;
+		}
+
+		float xPos = mAgentgroup.mAgents[i].mCurrPosition.x;
 		float yPos = 0;
-		float zPos = mSimResults->mPositions[frameId][i].y;
+		float zPos = mAgentgroup.mAgents[i].mCurrPosition.y;
 
 		sphere->setPos3(0, UT_Vector3F(xPos, yPos, zPos));
 
 	}
-
 }
 
 OP_ERROR AgentNode::cookMySop(OP_Context& context) {
@@ -372,12 +310,6 @@ OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 		printf("Cooking Sop with >>>> %d \n", size);
 	}
 
-	OP_AutoLockInputs inputs(this);
-
-	// Check if locking caused an error
-	if (inputs.lock(context) >= UT_ERROR_ABORT)
-		return error();
-
 	OP_Node::flags().timeDep = 1;
 
 	CH_Manager *chman = OPgetDirector()->getChannelManager();
@@ -385,16 +317,16 @@ OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 
 	fpreal reset = 1;
 
-	const GU_Detail* mInputGeometry = fetchAgentObj(context);
-
-	if (currframe <= reset)
+	if (!mInitialized)
 	{
-		initialize(10);
+		initialize();
+		mInitialized = true;
 	}
 	else
 	{
 		update(currframe);
 	}
+
 	return error();
 }
 
@@ -409,7 +341,6 @@ const GU_Detail* AgentNode::fetchAgentObj(OP_Context& context) {
 	return geo->getCookedGeo(context);
 
 }
-
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Agent Node End <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -531,10 +462,20 @@ void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArr
 		}
 	}
 
+	std::vector<AgentGroup*> mAllAgentGroups;
+
+	for (AgentNode *node : mAgentGroupNodes) {
+		mAllAgentGroups.push_back(node->getAgentGroup());
+	}
+
 	printf("PeepSimSolver::processObjectsSubclass >>>> \n");
 
 	// Run the Crowd Simulation and cook the agents node
 	if (!hasCookedSop) {
+
+		//mScene.addAgentGroups(mAllAgentGroups);
+		
+		// We can remove this later
 		mScene.loadFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
 
 		CrowdSim simulation = CrowdSim(mConfig, mScene);
@@ -545,55 +486,18 @@ void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArr
 		printf("Number of Agents in results is %d \n", mSimResults.mPositions[0].size());
 		hasCookedSop = true;
 
-		if (agents != nullptr) {
-			agents->updateResults(&mSimResults);
-			agents->updateScene(&mScene);
+		for (AgentNode *agent : mAgentGroupNodes) {
+			if (agents != nullptr) {
+				agents->updateResults(&mSimResults);
+				agents->updateScene(&mScene);
+				agents->mInitialized = false;
 
-			OP_Context context;
-			context.setFrame(currframe);
-			agents->cook(context);
+				OP_Context context;
+				context.setFrame(currframe);
+				agents->cook(context);
+			}
 		}
 	}
-	
-	/*if (!hasCookedSop) {
-		printf("Cooking Agent >>>> \n");
-		OP_Context context;
-		context.setFrame(currframe);
-		agents->cook(context);
-		hasCookedSop = true;
-	}
-	else {
-		printf("Update Frame >>>> \n");
-		
-	}*/
-
-	
-
-	//agents->update(currframe);
-
-	/*OP_NodeList crowdData;
-
-	OP_Node *parent = getParent();
-
-	printf(" Name of parent is %s\n", parent->getName().toStdString());
-
-	OP_Node *parentInput = parent->getInput(0);
-
-	printf(" Name of Input Node is %s\n", parentInput->getName().toStdString());
-
-	parentInput->getAllChildren(crowdData);
-
-	AgentNode *agents = ((AgentNode*)CAST_SOPNODE(crowdData(0)));
-
-	//getParent()->getInput(0)->getAllNodes(crowdData);
-
-	printf("Size of children list is %d \n", crowdData.size());
-	for (int i = 0; i < crowdData.size(); ++i) {
-	printf(" Node : %s\n", crowdData[i]->getName().toStdString());
-	}*/
-
-
-
 }
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PeepSimSolver End <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

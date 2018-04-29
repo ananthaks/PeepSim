@@ -64,6 +64,8 @@ namespace HDK_Sample {
 
 	public:
 
+		bool mInitialized;
+
 		AgentNode(OP_Network* net, const char* name, OP_Operator* op);
 
 		virtual ~AgentNode();
@@ -82,11 +84,9 @@ namespace HDK_Sample {
 
 		void setNumAgents(int numAgents);
 
-		void initialize(int numAgents);
+		void initialize();
 
-		void addAgent(fpreal x, fpreal y, fpreal z);
-
-		void update(int agentId, fpreal x, fpreal y, fpreal z);
+		GEO_Primitive* addAgent(fpreal x, fpreal y, fpreal z);
 
 		void update(fpreal timeStep);
 
@@ -96,6 +96,8 @@ namespace HDK_Sample {
 
 		const GU_Detail* fetchAgentObj(OP_Context& context);
 
+		AgentGroup* getAgentGroup();
+
 	private:
 
 		Results *mSimResults;
@@ -103,15 +105,8 @@ namespace HDK_Sample {
 		Scene *mScene;
 
 		AgentGroup mAgentgroup;
-
-		// Vector of primitives
-		std::vector<GEO_Primitive*> mAgents;
-
-		// List of Arguments
-
+		
 		int mNumAgents;
-		UT_String mJSONFilePath;
-		UT_String mObjPath;
 
 		int myCurrPoint;
 		int myTotalPoints;
@@ -120,14 +115,21 @@ namespace HDK_Sample {
 			return evalInt("numAgents", 0, n);
 		}
 
-		void IMPORT_AGENTS(UT_String& label, fpreal t) {
-			evalString(label, "filePath", 0, t);
+		void TARGET_POS(fpreal t, UT_Vector2R &pos) {
+			evalFloats("targetPos", pos.data(), t);
 		}
 
-		void OBJ_FILE(UT_String& label, fpreal t) {
-			evalString(label, "objFile", 0, t);
+		void SOURCE_POS(fpreal n, UT_Vector2R &pos) {
+			evalFloats("sourcePos", pos.data(), n);
 		}
 
+		fpreal AGENT_MASS(fpreal n) {
+			return evalFloat("agentMass", 0, n);
+		}
+
+		fpreal AGENT_RADIUS(fpreal n) {
+			return evalFloat("agentMass", 0, n);
+		}
 	};
 
 	/*class Colliders : public SOP_Node {

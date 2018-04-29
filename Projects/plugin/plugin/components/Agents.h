@@ -1,5 +1,6 @@
 #pragma once
 #include "../globalincludes.h"
+#include <GU/GU_Detail.h>
 
 template <class T, int dim>
 struct AgentTemplate {
@@ -23,6 +24,9 @@ struct AgentTemplate {
 
   int currTarget;
   std::vector<Vector> mPlannedPath; // Path to Target
+
+  const GU_Detail *mReference;
+  GEO_Primitive *mCurrGeo;
 
 };
 

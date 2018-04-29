@@ -127,6 +127,10 @@ std::vector<Vector> Scene::getAllPositions() const {
   return result;
 }
 
+void Scene::addAgentGroups(std::vector<AgentGroup*> &mAllAgentGroups) {
+	// TODO
+}
+
 
 void Scene::outputFrame(unsigned int frameId) {
 

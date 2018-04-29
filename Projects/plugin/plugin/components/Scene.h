@@ -29,6 +29,10 @@ struct Scene {
   std::vector<Vector> getAllPositions() const;
   void outputFrame(unsigned int frameId);
 
+  void addAgentGroups(std::vector<AgentGroup*> &mAllAgentGroups);
+
+
+
   int mNumAgents{0};
 
   std::vector<AgentGroup> mAgentGroups;
