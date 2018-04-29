@@ -359,8 +359,6 @@ void AgentNode::update(fpreal timeStep) {
 
 	int frameId = timeStep;
 
-
-
 	for (int i = 0; i < mAgentgroup.mAgents.size(); ++i) {
 
 		GEO_Primitive *sphere = mAgentgroup.mAgents[i].mCurrGeo;
@@ -396,16 +394,13 @@ OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 
 	fpreal reset = 1;
 
-	initialize(currframe);
-
-	if (!mInitialized)
+	if (currframe == reset)
 	{
-		
-		mInitialized = true;
+		initialize(currframe);
 	}
 	else
 	{
-		//update(currframe);
+		update(currframe);
 	}
 
 	return error();
@@ -645,10 +640,10 @@ void PeepSimSolver::loadFromFile(fpreal time) {
       return;
     }
 
-    int sampler = -1;
-    int samplerShape = -1;
+    int sampler = 0;
+    int samplerShape = 0;
 
-    if (group["sampler"].get<std::string>() == "NONE") {
+    if (group["sampler"].get<std::string>() == "GRID") {
       sampler = 0;
     }
     else if (group["sampler"].get<std::string>() == "RANDOMIZED") {
@@ -658,14 +653,11 @@ void PeepSimSolver::loadFromFile(fpreal time) {
       sampler = 2;
     }
 
-    if (group["samplerShape"].get<std::string>() == "NONE") {
+    if (group["samplerShape"].get<std::string>() == "SQUARE") {
       samplerShape = 0;
     }
-    else if (group["samplerShape"].get<std::string>() == "SQUARE") {
-      samplerShape = 1;
-    }
     else if (group["samplerShape"].get<std::string>() == "DISC") {
-      samplerShape = 2;
+      samplerShape = 1;
     }
 
     node->setInt("numAgents", 0, time, jsonNumAgents);
@@ -688,8 +680,8 @@ void PeepSimSolver::loadFromFile(fpreal time) {
     node->setFloat("sourcePos", 2, time, jsonSourcePos[2]);
 
 
-    node->setFloat("shapeChoice", 0, time, samplerShape);
-    node->setFloat("sampleChoice", 0, time, sampler);
+    node->setFloat("shapeMenu", 0, time, samplerShape);
+    node->setFloat("methodMenu", 0, time, sampler);
 
     node->cook(myContext);
 
@@ -742,7 +734,9 @@ void PeepSimSolver::updateScene(fpreal time) {
 		parent->getAllChildren(siblings);
 
 		OP_Node *crowdSourceNode = nullptr;
+		OP_Node *environmentNode = nullptr;
 		OP_Node *agentMergeNode = nullptr;
+		OP_Node *envMergeNode = nullptr;
 
 		// Get the CrowdSource Node
 		for (OP_Node* node : siblings) {
@@ -771,8 +765,6 @@ void PeepSimSolver::updateScene(fpreal time) {
 
 			int m = agentMergeNode->getInputsArraySize();
 
-			printf("PeepSimSolver::updateScene: Number of nodes in parent is %d \n", m);
-
 			for (int i = 0; i < m; ++i) {
 				OP_Node *node = agentMergeNode->getInput(i);
 				AgentNode *agentNode = ((AgentNode*)CAST_SOPNODE(node));
@@ -782,6 +774,48 @@ void PeepSimSolver::updateScene(fpreal time) {
 		else {
 			printf("PeepSimSolver::updateScene: Can't find `Merge Node \n");
 		}
+
+
+		// Get the Environment Node
+		for (OP_Node* node : siblings) {
+			if (node->getName().compare("Environment", false) == 0) {
+				environmentNode = node;
+				break;
+			}
+		}
+
+		crowdData.clear();
+
+		// Get the agent group merge Node
+		if (environmentNode != nullptr) {
+			environmentNode->getAllChildren(crowdData);
+			for (OP_Node* node : crowdData) {
+				if (node->getOperator()->getName().compare("merge", false) == 0) {
+					envMergeNode = node;
+					break;
+				}
+			}
+		}
+		else {
+			printf("PeepSimSolver::updateScene: Can't find Environment Merge Node \n");
+		}
+
+		// Get all the agent groups which needs to be shown
+		if (envMergeNode != nullptr) {
+
+			int m = envMergeNode->getInputsArraySize();
+
+			for (int i = 0; i < m; ++i) {
+				OP_Node *node = envMergeNode->getInput(i);
+				printf("The Environment nodes are %s \n", node->getOperator()->getName().toStdString());
+
+			}
+		}
+		else {
+			printf("PeepSimSolver::updateScene: Can't find `Merge Node \n");
+		}
+
+
 	}
 
 	std::vector<AgentGroup*> mAllAgentGroups;
