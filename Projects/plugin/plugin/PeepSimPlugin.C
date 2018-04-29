@@ -619,6 +619,11 @@ void PeepSimSolver::loadFromFile(fpreal time) {
     float jsonSourcePos[2] = {
       group["sourcePos"][0].get<float>(), group["sourcePos"][1].get<float>()
     };
+
+    float jsonSpacing[2] = {
+      group["spacing"][0].get<float>(), group["spacing"][1].get<float>()
+    };
+
     float jsonTargetPos[2] = {
       group["targetPos"][0].get<float>(), group["targetPos"][1].get<float>()
     };
@@ -669,6 +674,10 @@ void PeepSimSolver::loadFromFile(fpreal time) {
 
     node->setFloat("shapeSize", 0, time, jsonSizeX);
     node->setFloat("shapeSize", 1, time, jsonSizeY);
+
+    // TODO: Enable when implemented group spacing
+    //node->setFloat("agentSpacing", 0, time, jsonSpacing[0]);
+    //node->setFloat("agentSpacing", 1, time, jsonSpacing[1]);
 
     node->setFloat("targetPos", 0, time, jsonTargetPos[0]);
     node->setFloat("targetPos", 1, time, jsonTargetPos[1]);

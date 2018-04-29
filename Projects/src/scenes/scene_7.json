@@ -1,8 +1,9 @@
 {
   "agentGroups": [
     {
-      "numAgents": 10,
+      "numAgents": 3,
       "size": [ 1, 10 ],
+      "spacing": [ 1, 1 ],
       "sourcePos": [ 5, 0.5 ],
       "targetPos": [ -5, 0.5 ],
       "mass": 1.0,
@@ -12,8 +13,9 @@
       "debugColor":  [255, 0, 0]
     },
     {
-      "numAgents": 10,
+      "numAgents": 3,
       "size": [ 1, 10 ],
+      "spacing": [ 1, 1 ],
       "sourcePos": [ -5, 0 ],
       "targetPos": [ 5, 0 ],
       "mass": 1.0,
