@@ -1,0 +1,28 @@
+{
+  "agentGroups": [
+    {
+      "numAgents": 10,
+      "size": [ 1, 10 ],
+      "sourcePos": [ 5, 0.5 ],
+      "targetPos": [ -5, 0.5 ],
+      "mass": 1.0,
+      "radius": 0.25,
+      "sampler": "NONE",
+      "samplerShape": "SQUARE",
+      "debugColor":  [255, 0, 0]
+    },
+    {
+      "numAgents": 10,
+      "size": [ 1, 10 ],
+      "sourcePos": [ -5, 0 ],
+      "targetPos": [ 5, 0 ],
+      "mass": 1.0,
+      "radius": 0.25,
+      "sampler": "NONE",
+      "samplerShape": "SQUARE",
+      "debugColor":  [255, 0, 0]
+    }
+  ],
+
+  "colliders": []
+}

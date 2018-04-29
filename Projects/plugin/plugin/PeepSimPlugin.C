@@ -27,6 +27,8 @@
 #include <PI/PI_ResourceManager.h>
 #include <MOT/MOT_Director.h>
 
+#include "external/json.hpp"
+
 static float numAgent = 10.0;
 
 using namespace HDK_Sample;
@@ -130,7 +132,7 @@ static PRM_Default shapeSizeDefault[] = {
 	PRM_Default(5.0),
 };
 
-static PRM_Default filePathDefault(0.0, "P:\\ubuntu\\PeepSim\\Projects\\src\\scenes\\scene_5.json");
+static PRM_Default filePathDefault(0.0, "P:\\ubuntu\\PeepSim\\Projects\\src\\scenes\\scene_7.json");
 static PRM_Default velocityBlendDefault(0.4);
 static PRM_Default maxVelocityDefault(2.0);
 static PRM_Default maxStabilityIterationsDefault(10);
@@ -500,6 +502,8 @@ void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArr
 }
 
 void PeepSimSolver::loadFromFile(fpreal time) {
+  using Json = nlohmann::json;
+
   UT_String filePath;
   FILEPATH(filePath, time);
 
@@ -553,15 +557,55 @@ void PeepSimSolver::loadFromFile(fpreal time) {
 
   printf("Loading File From: %s \n", path.c_str());
 
-  Scene tempScene = Scene(mConfig);
-  tempScene.loadFromFile(path);
+  std::ifstream inputFileStream(filePath);
+  std::string jsonData;
+
+  // Note: File Load Not Optimized for huge files.
+  inputFileStream.seekg(0, std::ios::end);
+  jsonData.reserve(inputFileStream.tellg());
+  inputFileStream.seekg(0, std::ios::beg);
+
+  jsonData.assign((std::istreambuf_iterator<char>(inputFileStream)),
+    std::istreambuf_iterator<char>());
+
+  auto data = Json::parse(jsonData);
+
+  auto jsonGroups = data["agentGroups"];
 
   int count = 1;
 
-  /*for (auto& group : tempScene.mAgentGroups) {
-    std::string nodeName = "AgentGroup_1" + count;
+  for (Json::iterator it = jsonGroups.begin(); it != jsonGroups.end(); ++it) {
+    // Structure
+    /*{
+      "numAgents": 10,
+      "size" : [1, 10],
+      "sourcePos" : [5, 0.5],
+      "targetPos" : [-5, 0.5],
+      "mass" : 1.0,
+      "radius" : 0.25,
+      "sampler" : "NONE",
+      "samplerShape" : "SQUARE",
+      "debugColor" : [255, 0, 0]
+    }*/
+    auto group = *it;
 
-    OP_Node* node = ((OP_Network*)crowdSourceNode)->createNode("AgentGroup", nodeName);
+    int jsonNumAgents = group["numAgents"].get<int>();
+    int jsonSizeX = group["size"][0].get<int>();
+    int jsonSizeY = group["size"][1].get<int>();
+
+    float jsonSourcePos[2] = {
+      group["sourcePos"][0].get<float>(), group["sourcePos"][1].get<float>()
+    };
+    float jsonTargetPos[2] = {
+      group["targetPos"][0].get<float>(), group["targetPos"][1].get<float>()
+    };
+
+    float mass = group["mass"].get<float>();
+    float radius = group["radius"].get<float>();
+
+    std::string nodeName = "AgentGroup_" + std::to_string(count);
+
+    OP_Node* node = ((OP_Network*)crowdSourceNode)->createNode("AgentGroup", nodeName.c_str());
 
     if (node == nullptr) {
       printf("Load Failed: Can't create node \n");
@@ -573,10 +617,28 @@ void PeepSimSolver::loadFromFile(fpreal time) {
       return;
     }
 
+    //node->setInt("numAgents", 0, time, jsonNumAgents);
+    node->setFloat("agentMass", 0, time, mass);
+    node->setFloat("agentRadius", 0, time, radius);
+
+    //node->setFloat("shapeSize", 0, time, jsonSizeX);
+    //node->setFloat("shapeSize", 1, time, jsonSizeY);
+
+    //node->setFloat("targetPos", 0, time, jsonTargetPos[0]);
+    //node->setFloat("targetPos", 1, time, jsonTargetPos[1]);
+    //node->setFloat("targetPos", 2, time, jsonTargetPos[2]);
+
+    //node->setFloat("sourcePos", 0, time, jsonSourcePos[0]);
+    //node->setFloat("sourcePos", 1, time, jsonSourcePos[1]);
+    //node->setFloat("sourcePos", 2, time, jsonSourcePos[2]);
+
+    node->cook(myContext);
+
+    agentMergeNode->setInput(agentMergeNode->getInputsArraySize(), node);
     node->moveToGoodPosition();
 
     printf("Load Passed: Created Node \n");
-  }*/
+  }
 }
 
 void PeepSimSolver::updateScene(fpreal time) {
