@@ -42,7 +42,7 @@ Results Solver::solve(Scene& scene) {
 
     for (SizeType agentIdx = 0; agentIdx < group->mAgents.size(); agentIdx++) {
       mAgents[count] = &(scene.mAgentGroups[groupIdx]->mAgents[agentIdx]);
-	  mAgents[count]->mCachedPos.clear();
+	    mAgents[count]->mCachedPos.clear();
       ++count;
     }
   }
@@ -65,12 +65,6 @@ Results Solver::solve(Scene& scene) {
   const int numIterations = mConfig.mFPS * mConfig.mSimualtionDuration;
 
   results.mPositions.reserve(numIterations);
-
-  printf("Break Point 2\n");
-  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mMass, scene.mAgentGroups[0]->mAgents[1].mRadius);
-  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mTargetPosition.x, scene.mAgentGroups[0]->mAgents[1].mTargetPosition.y);
-  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mStartPosition.x, scene.mAgentGroups[0]->mAgents[1].mStartPosition.y);
-  printf("Break Point 2\n");
 
   for (int frame = 0; frame < numIterations; ++frame) {
 
@@ -108,6 +102,7 @@ Results Solver::solve(Scene& scene) {
                                 mVelocityBlend * agent->mPlannerVelocity;
       agent->mProposedPosition = agent->mCurrPosition + mConfig.mTimeStep * agent->mBlendedVelocity;
     }
+
     // Step 2: Project Frictional Contact constraints
 
     // TODO: Optimization: We can compute neighouring Agents for each agent and
@@ -206,23 +201,11 @@ Results Solver::solve(Scene& scene) {
       }
       agent->mCurrPosition = agent->mProposedPosition;
 
-	  agent->mCachedPos.push_back(agent->mCurrPosition);
+	    agent->mCachedPos.push_back(agent->mCurrPosition);
     }
-
-    //results.mPositions.push_back(scene.getAllPositions());
-
-
   }
 
-  printf("Number of agents in solver is %d \n", results.mPositions[0].size());
   printf("Number of mAgents is %d \n", mAgents.size());
-
-  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mMass, scene.mAgentGroups[0]->mAgents[1].mRadius);
-  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mCurrPosition.x, scene.mAgentGroups[0]->mAgents[1].mCurrPosition.y);
-  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mCurrVelocity.x, scene.mAgentGroups[0]->mAgents[1].mCurrVelocity.y);
-  printf("The second agent pos is %f %f \n", scene.mAgentGroups[0]->mAgents[1].mCachedPos[1].x, scene.mAgentGroups[0]->mAgents[1].mCachedPos[1].y);
-
-
-
+  printf("Number of mAgents[0] Cached Size is %d \n", mAgents[0]->mCachedPos.size());
   return results;
 }

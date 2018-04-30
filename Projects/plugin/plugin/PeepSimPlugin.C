@@ -275,7 +275,9 @@ int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Tem
 	
 	me->getAgentGroup()->mAgents.push_back(newAgent);
 
+  printf("AgentNode :: The mass & radius was %f %f \n", mass, radius);
 	printf("AgentNode :: The position of the node was %f %f \n", source[0], source[1]);
+  printf("AgentNode :: The target of the node was %f %f \n", target[0], target[1]);
 	printf("AgentNode :: The position of the node was %f %f \n", me->getAgentGroup()->mAgents[0].mCurrPosition.x, me->getAgentGroup()->mAgents[0].mCurrPosition.y);
 
 
@@ -325,14 +327,20 @@ void AgentNode::initialize(fpreal frame) {
 		float yPos = 0;
 		float zPos = source[1] + i * height;
 
+    float xTargetPos = target[0] + i * width;
+    float zTargetPos = target[1] + i * height;
+
 		Agent newAgent;
 
 		newAgent.mMass = mass;
 		newAgent.mRadius = radius;
 
-		newAgent.mStartPosition = Vector(source[0], source[1]);
+    newAgent.mCurrVelocity = Vector(0, 0);
+    newAgent.mForce = Vector(0, 0);
+
+		newAgent.mStartPosition = Vector(xPos, zPos);
 		newAgent.mCurrPosition = newAgent.mStartPosition;
-		newAgent.mTargetPosition = Vector(target[0], target[1]);
+		newAgent.mTargetPosition = Vector(xTargetPos, zTargetPos);
 		newAgent.mReference = geometry;
 
 		newAgent.mCurrGeo = addAgent(xPos, yPos, zPos);
@@ -364,6 +372,7 @@ void AgentNode::update(fpreal timeStep) {
 		GEO_Primitive *sphere = mAgentgroup.mAgents[i].mCurrGeo;
 
 		if (sphere == nullptr || frameId >= mAgentgroup.mAgents[i].mCachedPos.size()) {
+      printf("Break here %d", sphere == nullptr);
 			continue;
 		}
 		
@@ -603,82 +612,90 @@ void PeepSimSolver::loadFromFile(fpreal time) {
       "radius" : 0.25,
       "sampler" : "NONE",
       "samplerShape" : "SQUARE",
-      "debugColor" : [255, 0, 0]
-    }*/
-    auto group = *it;
+	  "debugColor" : [255, 0, 0]
+	  }*/
+	  auto group = *it;
 
-    int jsonNumAgents = group["numAgents"].get<int>();
-    int jsonSizeX = group["size"][0].get<int>();
-    int jsonSizeY = group["size"][1].get<int>();
+	  int jsonNumAgents = group["numAgents"].get<int>();
+	  int jsonSizeX = group["size"][0].get<int>();
+	  int jsonSizeY = group["size"][1].get<int>();
 
-    float jsonSourcePos[2] = {
-      group["sourcePos"][0].get<float>(), group["sourcePos"][1].get<float>()
-    };
-    float jsonTargetPos[2] = {
-      group["targetPos"][0].get<float>(), group["targetPos"][1].get<float>()
-    };
+	  float jsonSourcePos[2] = {
+		  group["sourcePos"][0].get<float>(), group["sourcePos"][1].get<float>()
+	  };
 
-    float mass = group["mass"].get<float>();
-    float radius = group["radius"].get<float>();
+	  float jsonSpacing[2] = {
+		  group["spacing"][0].get<float>(), group["spacing"][1].get<float>()
+	  };
 
-    std::string nodeName = "AgentGroup_" + std::to_string(count);
+	  float jsonTargetPos[2] = {
+		  group["targetPos"][0].get<float>(), group["targetPos"][1].get<float>()
+	  };
 
-    OP_Node* node = ((OP_Network*)crowdSourceNode)->createNode("AgentGroup", nodeName.c_str());
+	  float mass = group["mass"].get<float>();
+	  float radius = group["radius"].get<float>();
 
-    if (node == nullptr) {
-      printf("Load Failed: Can't create node \n");
-      return;
-    }
+	  std::string nodeName = "AgentGroup_" + std::to_string(count);
 
-    if (!node->runCreateScript()) {
-      printf("Load Failed: Can't create script error \n");
-      return;
-    }
+	  OP_Node* node = ((OP_Network*)crowdSourceNode)->createNode("AgentGroup", nodeName.c_str());
 
-    int sampler = 0;
-    int samplerShape = 0;
+	  if (node == nullptr) {
+		  printf("Load Failed: Can't create node \n");
+		  return;
+	  }
 
-    if (group["sampler"].get<std::string>() == "GRID") {
-      sampler = 0;
-    }
-    else if (group["sampler"].get<std::string>() == "RANDOMIZED") {
-      sampler = 1;
-    }
-    else if (group["sampler"].get<std::string>() == "STRATIFIED") {
-      sampler = 2;
-    }
+	  if (!node->runCreateScript()) {
+		  printf("Load Failed: Can't create script error \n");
+		  return;
+	  }
 
-    if (group["samplerShape"].get<std::string>() == "SQUARE") {
-      samplerShape = 0;
-    }
-    else if (group["samplerShape"].get<std::string>() == "DISC") {
-      samplerShape = 1;
-    }
+	  int sampler = 0;
+	  int samplerShape = 0;
 
-	sampler = 1;
-	samplerShape = 1;
+	  if (group["sampler"].get<std::string>() == "GRID") {
+		  sampler = 0;
+	  }
+	  else if (group["sampler"].get<std::string>() == "RANDOMIZED") {
+		  sampler = 1;
+	  }
+	  else if (group["sampler"].get<std::string>() == "STRATIFIED") {
+		  sampler = 2;
+	  }
 
-    node->setInt("numAgents", 0, time, jsonNumAgents);
-    node->setFloat("agentMass", 0, time, mass);
-    node->setFloat("agentRadius", 0, time, radius);
+	  if (group["samplerShape"].get<std::string>() == "SQUARE") {
+		  samplerShape = 0;
+	  }
+	  else if (group["samplerShape"].get<std::string>() == "DISC") {
+		  samplerShape = 1;
+	  }
 
-    node->setFloat("shapeSize", 0, time, jsonSizeX);
-    node->setFloat("shapeSize", 1, time, jsonSizeY);
+	  node->setInt("numAgents", 0, time, jsonNumAgents);
+	  node->setFloat("agentMass", 0, time, mass);
+	  node->setFloat("agentRadius", 0, time, radius);
 
-    node->setFloat("targetPos", 0, time, jsonTargetPos[0]);
-    node->setFloat("targetPos", 1, time, jsonTargetPos[1]);
+	  node->setFloat("shapeSize", 0, time, jsonSizeX);
+	  node->setFloat("shapeSize", 1, time, jsonSizeY);
 
-    node->setFloat("sourcePos", 0, time, jsonSourcePos[0]);
-    node->setFloat("sourcePos", 1, time, jsonSourcePos[1]);
+	  // TODO: Enable when implemented group spacing
+	  //node->setFloat("agentSpacing", 0, time, jsonSpacing[0]);
+	  //node->setFloat("agentSpacing", 1, time, jsonSpacing[1]);
 
-	
-    node->setInt("shapeMenu", 0, time, samplerShape);
-    node->setInt("methodMenu", 0, time, sampler);
+	  node->setFloat("targetPos", 0, time, jsonTargetPos[0]);
+	  node->setFloat("targetPos", 1, time, jsonTargetPos[1]);
+	  node->setFloat("targetPos", 2, time, jsonTargetPos[2]);
 
-    node->cook(myContext);
+	  node->setFloat("sourcePos", 0, time, jsonSourcePos[0]);
+	  node->setFloat("sourcePos", 1, time, jsonSourcePos[1]);
+	  node->setFloat("sourcePos", 2, time, jsonSourcePos[2]);
 
-    agentMergeNode->setInput(agentMergeNode->getInputsArraySize(), node);
-    node->moveToGoodPosition();
+
+	  node->setFloat("shapeMenu", 0, time, samplerShape);
+	  node->setFloat("methodMenu", 0, time, sampler);
+
+	  node->cook(myContext);
+
+	  agentMergeNode->setInput(agentMergeNode->getInputsArraySize(), node);
+	  node->moveToGoodPosition();
   }
 
   printf("Loading JSON Completed\n");
@@ -848,17 +865,18 @@ void PeepSimSolver::updateScene(fpreal time) {
 	mScene.addColliders(mColliders);
 	mScene.mNumAgents = numAgents;
 
+  //printf("YOLO %f, %f \n", mAllAgentGroups[0]->mAgents[0].mMass, mAllAgentGroups[0]->mAgents[0].mRadius);
+
 	// TODO: add colliders
 
 	// We can remove this later
 	//mScene.loadFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
+  // mScene.loadFromFile("P:\\ubuntu\\PeepSim\\Projects\\src\\scenes\\scene_5.json");
 
 	CrowdSim simulation = CrowdSim(mConfig, mScene);
 	//simulation.loadSceneFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
 	mSimResults = simulation.evaluate();
 
-	printf("Number of Frames in results is %d \n", mSimResults.mPositions.size());
-	printf("Number of Agents in results is %d \n", mSimResults.mPositions[0].size());
 	hasCookedSop = true;
 
 	for (AgentNode *agent : mAgentGroupNodes) {

@@ -150,7 +150,7 @@ namespace HDK_Sample {
 		}
 
 		fpreal AGENT_RADIUS(fpreal n) {
-			return evalFloat("agentMass", 0, n);
+			return evalFloat("agentRadius", 0, n);
 		}
 
 		int SAMPLE_SHAPE(fpreal n) {

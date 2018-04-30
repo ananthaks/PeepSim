@@ -145,7 +145,7 @@ void Scene::addColliders(std::vector<std::pair<Vector, Vector>> &boundingBoxes) 
 		float width = (boundingBox.second.x);
 		float breadth = (boundingBox.second.y);
 
-		BoxCollider* box = new BoxCollider(Vector(lowx, lowz), Vector3(width, 1, breadth));
+		BoxCollider* box = new BoxCollider(Vector(lowx, lowz), Vector3(width, breadth, 1));
 		mColliders.push_back(box);
 	}
 
