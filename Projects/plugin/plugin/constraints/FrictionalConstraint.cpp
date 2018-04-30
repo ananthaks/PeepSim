@@ -23,6 +23,9 @@ VectorPair FrictionalConstraint::evaluate(Agent &x1, Agent &x2) {
     float s = constraintValue / (invWeight1 + invWeight2);
     result.first = (-invWeight1 * s) * n;
     result.second = (invWeight2 * s) * n;
+
+    /*printf("W: %f %f \n", invWeight1, invWeight2);
+    printf("Junk: %f %f \n", s, n);*/
   }
 
   return result;

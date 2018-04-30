@@ -275,7 +275,9 @@ int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Tem
 	
 	me->getAgentGroup()->mAgents.push_back(newAgent);
 
+  printf("AgentNode :: The mass & radius was %f %f \n", mass, radius);
 	printf("AgentNode :: The position of the node was %f %f \n", source[0], source[1]);
+  printf("AgentNode :: The target of the node was %f %f \n", target[0], target[1]);
 	printf("AgentNode :: The position of the node was %f %f \n", me->getAgentGroup()->mAgents[0].mCurrPosition.x, me->getAgentGroup()->mAgents[0].mCurrPosition.y);
 
 
@@ -325,14 +327,20 @@ void AgentNode::initialize(fpreal frame) {
 		float yPos = 0;
 		float zPos = source[1] + i * height;
 
+    float xTargetPos = target[0] + i * width;
+    float zTargetPos = target[1] + i * height;
+
 		Agent newAgent;
 
 		newAgent.mMass = mass;
 		newAgent.mRadius = radius;
 
-		newAgent.mStartPosition = Vector(source[0], source[1]);
+    newAgent.mCurrVelocity = Vector(0, 0);
+    newAgent.mForce = Vector(0, 0);
+
+		newAgent.mStartPosition = Vector(xPos, zPos);
 		newAgent.mCurrPosition = newAgent.mStartPosition;
-		newAgent.mTargetPosition = Vector(target[0], target[1]);
+		newAgent.mTargetPosition = Vector(xTargetPos, zTargetPos);
 		newAgent.mReference = geometry;
 
 		newAgent.mCurrGeo = addAgent(xPos, yPos, zPos);
@@ -364,6 +372,7 @@ void AgentNode::update(fpreal timeStep) {
 		GEO_Primitive *sphere = mAgentgroup.mAgents[i].mCurrGeo;
 
 		if (sphere == nullptr || frameId >= mAgentgroup.mAgents[i].mCachedPos.size()) {
+      printf("Break here %d", sphere == nullptr);
 			continue;
 		}
 		
@@ -837,17 +846,18 @@ void PeepSimSolver::updateScene(fpreal time) {
 	mScene.addAgentGroups(mAllAgentGroups);
 	mScene.mNumAgents = numAgents;
 
+  //printf("YOLO %f, %f \n", mAllAgentGroups[0]->mAgents[0].mMass, mAllAgentGroups[0]->mAgents[0].mRadius);
+
 	// TODO: add colliders
 
 	// We can remove this later
 	//mScene.loadFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
+  // mScene.loadFromFile("P:\\ubuntu\\PeepSim\\Projects\\src\\scenes\\scene_5.json");
 
 	CrowdSim simulation = CrowdSim(mConfig, mScene);
 	//simulation.loadSceneFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
 	mSimResults = simulation.evaluate();
 
-	printf("Number of Frames in results is %d \n", mSimResults.mPositions.size());
-	printf("Number of Agents in results is %d \n", mSimResults.mPositions[0].size());
 	hasCookedSop = true;
 
 	for (AgentNode *agent : mAgentGroupNodes) {
