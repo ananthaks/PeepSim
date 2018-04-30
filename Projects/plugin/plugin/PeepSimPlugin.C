@@ -694,6 +694,7 @@ void PeepSimSolver::updateScene(fpreal time) {
 	// Fetch the input Crowd Source node
 
 	std::vector<AgentNode*> mAgentGroupNodes;
+	std::vector<std::pair<Vector, Vector>> mColliders;
 
 	AgentNode *agents = nullptr;
 
@@ -799,8 +800,25 @@ void PeepSimSolver::updateScene(fpreal time) {
 
 			for (int i = 0; i < m; ++i) {
 				OP_Node *node = envMergeNode->getInput(i);
-				printf("The Environment nodes are %s \n", node->getOperator()->getName().toStdString());
+				// Allow only box colliders for now
+				if (node->getOperator()->getName().compare("box", false) == 0) {
+					SOP_Node *boxNode = ((SOP_Node*)CAST_SOPNODE(node));
+					UT_BoundingBoxF mBoundingBox;
+					boxNode->getBoundingBox(mBoundingBox, myContext);
 
+
+					float minx = mBoundingBox.minvec()[0];
+					float minz = mBoundingBox.minvec()[2];
+
+					float sizex = mBoundingBox.size()[0];
+					float sizeZ = mBoundingBox.size()[2];
+
+					printf("The collider size is %f %f %f %f \n", minx, minz, sizex, sizeZ);
+
+					std::pair<Vector, Vector> mBoundingPair = std::make_pair(Vector(minx, minz), Vector(sizex, sizeZ));
+
+					mColliders.push_back(mBoundingPair);
+				}
 			}
 		}
 		else {
@@ -827,6 +845,7 @@ void PeepSimSolver::updateScene(fpreal time) {
 
 	mScene = Scene(mConfig);
 	mScene.addAgentGroups(mAllAgentGroups);
+	mScene.addColliders(mColliders);
 	mScene.mNumAgents = numAgents;
 
 	// TODO: add colliders

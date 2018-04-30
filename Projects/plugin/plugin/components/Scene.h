@@ -29,8 +29,7 @@ struct Scene {
   void outputFrame(unsigned int frameId);
 
   void addAgentGroups(std::vector<AgentGroup*> &mAllAgentGroups);
-
-
+  void addColliders(std::vector<std::pair<Vector, Vector>> &boundingBoxes);
 
   int mNumAgents{0};
 

@@ -133,8 +133,25 @@ std::vector<Vector> Scene::getAllPositions() const {
 
 void Scene::addAgentGroups(std::vector<AgentGroup*> &mAllAgentGroups) {
 	mAgentGroups = mAllAgentGroups;
-
 }
+
+void Scene::addColliders(std::vector<std::pair<Vector, Vector>> &boundingBoxes) {
+
+	for (std::pair<Vector, Vector> &boundingBox : boundingBoxes) {
+
+		float lowx = (boundingBox.first.x);
+		float lowz = (boundingBox.first.y);
+
+		float width = (boundingBox.second.x);
+		float breadth = (boundingBox.second.y);
+
+		BoxCollider* box = new BoxCollider(Vector(lowx, lowz), Vector3(width, 1, breadth));
+		mColliders.push_back(box);
+	}
+
+	
+}
+
 
 
 void Scene::outputFrame(unsigned int frameId) {
