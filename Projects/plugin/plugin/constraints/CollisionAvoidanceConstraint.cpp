@@ -33,10 +33,7 @@ VectorPair CollisionAvoidanceConstraint::evaluate(Agent &x1, Agent &x2)
 
   float tau2 = (b2 - std::sqrt((b2 * b2) - (a2 * c2))) / a2;
 
-  // tau = tau2;
-
-  // std::cout << "TAUS: " << tau << ", " << tau2 << std::endl;
-  tau = std::abs(tau);
+  tau = tau2;
 
   // TODO: remove Experimental code
 
@@ -60,20 +57,24 @@ VectorPair CollisionAvoidanceConstraint::evaluate(Agent &x1, Agent &x2)
     Vector predictAgent2Pos2 = x2.mCurrPosition + tauNext * x2.mBlendedVelocity;
 
     // Relative Displacement
-    Vector d = (predictAgent1Pos2 - predictAgent1Pos1) -
+    Vector d1 = (predictAgent1Pos2 - predictAgent1Pos1) -
                (predictAgent2Pos2 - predictAgent2Pos1);
 
     // Contact Normal
     Vector n = (predictAgent1Pos2 - predictAgent2Pos2).Normalized();
 
-    Vector dn = (Vector::DotProduct(d, n)) * n;
-    Vector dt = d - dn; // Tangential Displacement needed
+    Vector d2 = (-d1) -  2.0f * Vector::DotProduct(-d1, n) * n;
+
+    Vector d1n = (Vector::DotProduct(d1, n)) * n;
+    Vector d2n = (Vector::DotProduct(d2, n)) * n;
+    Vector d1t = d1 - d1n; // Tangential Displacement needed
+    Vector d2t = d2 - d2n;
 
     float powVal = (-1.0f * tauPrev * tauPrev) / tau;
-    float stiff = 0.005 * std::exp(powVal);
+    float stiff = mConfig.mAvoidanceStiffness * std::exp(powVal);
 
-    result.first = stiff * dt;
-    result.second = stiff * dt;
+    result.first = stiff * d1t;
+    result.second = stiff * d2t;
   }
 
   return result;

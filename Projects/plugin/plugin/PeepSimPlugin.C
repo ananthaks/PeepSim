@@ -88,6 +88,7 @@ static PRM_Name loadFileCommand("loadFile", "Load Scene from File");
 static PRM_Name numAgentsName("numAgents", "Number of Agents");
 static PRM_Name agentMassName("agentMass", "Agent Mass");
 static PRM_Name agentRadiusName("agentRadius", "Agent Radius");
+static PRM_Name agentSpacingName("agentSpacing", "Agent Spacing");
 
 static PRM_Name samplingShapeChoiceName("shapeMenu", "Sampling Shape");
 static PRM_Name samplingMethodChoiceName("methodMenu", "Sampling Method");
@@ -148,6 +149,11 @@ static PRM_Default sourcePositionDefault[] = {
 	PRM_Default(0.0),
 };
 
+static PRM_Default agentSpacingDefault[] = {
+  PRM_Default(1.0),
+  PRM_Default(1.0),
+};
+
 /*
 * Package the declared parameters so that it can be used to add to the operator table
 */
@@ -164,6 +170,8 @@ PRM_Template AgentNode::mParameterList[] = {
 	PRM_Template(PRM_ORD, 1, &samplingMethodChoiceName, 0, &samplingMethodChoiceMenu),
 
 	PRM_Template(PRM_XYZ_J,  2, &shapeSize, shapeSizeDefault, 0),
+
+  PRM_Template(PRM_XYZ_J,  2, &agentSpacingName, agentSpacingDefault, 0),
 
 	PRM_Template(PRM_XYZ_J,  2, &targetPosition, targetPositionDefault, 0),
 
@@ -302,9 +310,11 @@ void AgentNode::initialize(fpreal frame) {
 	UT_Vector2R size;
 	UT_Vector2R source;
 	UT_Vector2R target;
+  UT_Vector2R spacing;
 	
 	SHAPE_SIZE(frame, size);
 	SOURCE_POS(frame, source);
+  AGENT_SPACING(frame, spacing);
 	TARGET_POS(frame, target);
 
 	int sampleShape = SAMPLE_SHAPE(frame);
@@ -316,12 +326,55 @@ void AgentNode::initialize(fpreal frame) {
 
 	gdp->clearAndDestroy();
 
-	float width = size[0] / (float)mNumAgents;
-	float height = size[1] / (float)mNumAgents;
+	float width = size[0];
+	float height = size[1];
+
+  float xSpace = spacing[0];
+  float ySpace = spacing[0];
 
 	const GU_Detail *geometry = fetchAgentObj(myContext);
 
-	for (int i = 0; i < mNumAgents; ++i) {
+  float currentX = 0.0f;
+  float currentZ = 0.0f;
+
+  int deployedAgents = 0;
+
+  for (int w = 0; w < width; ++w) {
+    for (int h = 0; h < height; ++h) {
+      if (deployedAgents >= mNumAgents) {
+        // Deployed all agents inside grid box
+        break;
+      }
+
+      float xPos = source[0] + w * xSpace;
+      float yPos = 0;
+      float zPos = source[1] + h * ySpace;
+
+      float xTargetPos = target[0] + w * xSpace;
+      float zTargetPos = target[1] + h * ySpace;
+
+      Agent newAgent;
+
+      newAgent.mMass = mass;
+      newAgent.mRadius = radius;
+
+      newAgent.mCurrVelocity = Vector(0, 0);
+      newAgent.mForce = Vector(0, 0);
+
+      newAgent.mStartPosition = Vector(xPos, zPos);
+      newAgent.mCurrPosition = newAgent.mStartPosition;
+      newAgent.mTargetPosition = Vector(xTargetPos, zTargetPos);
+      newAgent.mReference = geometry;
+
+      newAgent.mCurrGeo = addAgent(xPos, yPos, zPos);
+
+      mAgentgroup.mAgents.push_back(newAgent);
+
+      ++deployedAgents;
+    }
+  }
+
+	/*for (int i = 0; i < mNumAgents; ++i) {
 
 		float xPos = source[0] +  i * width;
 		float yPos = 0;
@@ -346,7 +399,7 @@ void AgentNode::initialize(fpreal frame) {
 		newAgent.mCurrGeo = addAgent(xPos, yPos, zPos);
 
 		mAgentgroup.mAgents.push_back(newAgent);
-	}
+	}*/
 
 }
 
@@ -676,9 +729,8 @@ void PeepSimSolver::loadFromFile(fpreal time) {
 	  node->setFloat("shapeSize", 0, time, jsonSizeX);
 	  node->setFloat("shapeSize", 1, time, jsonSizeY);
 
-	  // TODO: Enable when implemented group spacing
-	  //node->setFloat("agentSpacing", 0, time, jsonSpacing[0]);
-	  //node->setFloat("agentSpacing", 1, time, jsonSpacing[1]);
+	  node->setFloat("agentSpacing", 0, time, jsonSpacing[0]);
+	  node->setFloat("agentSpacing", 1, time, jsonSpacing[1]);
 
 	  node->setFloat("targetPos", 0, time, jsonTargetPos[0]);
 	  node->setFloat("targetPos", 1, time, jsonTargetPos[1]);
