@@ -44,7 +44,7 @@ struct PeepSimConfig {
   float mVelocityBlend{0.8f};
   float mMaxVelocity{2.0f};
   int mMaxStabilityIterations{10};
-  int mMaxIterations{5};
+  int mMaxIterations{100};
   float mDefaultAgentRadius{0.25f};
   float mDefaultAgentMass{1.0f};
   float mViscosityH{7.0f};
@@ -52,7 +52,7 @@ struct PeepSimConfig {
   int mCollisionMarchSteps{1000};
   float mPoly6Kernel{1.566681471f};
   int mPathGridSize{100};
-  float mMinDistanceToTarget{0.5f};
+  float mMinDistanceToTarget{0.2f};
   float mAvoidanceMaxTau{20.0f};
 
   void create() {

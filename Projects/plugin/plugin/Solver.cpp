@@ -1,6 +1,6 @@
 #include "Solver.h"
 
-//#define PATH_FINDER_ON
+#define PATH_FINDER_ON
 
 
 Solver::Solver(const PeepSimConfig& config)
@@ -38,7 +38,7 @@ Results Solver::solve(Scene& scene) {
   for (SizeType groupIdx = 0; groupIdx < scene.mAgentGroups.size(); groupIdx++) {
     auto group = scene.mAgentGroups[groupIdx];
 
-	printf("The number of agents is is %d \n", group->mAgents.size());
+	printf("The number of agents is %d \n", group->mAgents.size());
 
     for (SizeType agentIdx = 0; agentIdx < group->mAgents.size(); agentIdx++) {
       mAgents[count] = &(scene.mAgentGroups[groupIdx]->mAgents[agentIdx]);
@@ -58,9 +58,14 @@ Results Solver::solve(Scene& scene) {
     bool result = mPathFinder.getPathToTarget(agent->mCurrPosition, agent->mTargetPosition,
                                               resultPath);
     agent->mPlannedPath = resultPath;
+
+	printf("The planned path size is %d \n", agent->mPlannedPath.size());
+
     agent->currTarget = 0;
   }
 #endif
+
+  printf("The in path finding is %d \n", mAgents.size());
 
   const int numIterations = mConfig.mFPS * mConfig.mSimualtionDuration;
 
@@ -79,20 +84,26 @@ Results Solver::solve(Scene& scene) {
       Agent* agent = mAgents[i];
 
 #ifdef PATH_FINDER_ON
-      Vector target = agent->mPlannedPath[agent->mPlannedPath.size() - agent->currTarget - 1];
-      Vector dist = target - agent->mCurrPosition;
+	  Vector target;
+	  if (agent->currTarget < agent->mPlannedPath.size()) {
+		  target = agent->mPlannedPath[agent->mPlannedPath.size() - agent->currTarget - 1];
+		  Vector dist = target - agent->mCurrPosition;
 
-      if (dist.Length() < mConfig.mMinDistanceToTarget) {
-        agent->currTarget = agent->currTarget + 1;
-      }
+		  if (dist.Length() < mConfig.mMinDistanceToTarget) {
+			  printf("Changing Target\n");
 
-      if (agent->currTarget < agent->mPlannedPath.size()) {
+				agent->currTarget = agent->currTarget + 1;
+		  }
         target = agent->mPlannedPath[agent->mPlannedPath.size() - agent->currTarget - 1];
       } else {
         target = agent->mTargetPosition;
       }
-      agent->mPlannerVelocity = target - agent->mCurrPosition;
+      agent->mPlannerVelocity = (target - agent->mCurrPosition);
 
+	  float neededMag = (agent->mTargetPosition - agent->mCurrPosition).Length() + 0.001f;
+	  float currMag = agent->mPlannerVelocity.Length() + 0.001f;
+
+	  agent->mPlannerVelocity *= neededMag / currMag;
 
 #else
       agent->mPlannerVelocity = agent->mTargetPosition - agent->mCurrPosition;

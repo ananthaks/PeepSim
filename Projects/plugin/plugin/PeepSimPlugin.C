@@ -75,8 +75,8 @@ static PRM_Name filePath("filePath", "File Path");
 */
 static PRM_Name velocityBlendName("velocityBlend", "Velocity Blend");
 static PRM_Name maxVelocityName("maxVelocity", "Max Velocity");
-static PRM_Name maxStabilityIterationsName("maxStabilityIterations", "Max Stability Iterations");
-static PRM_Name maxIterationsName("maxIterations", "Max Iterations");
+static PRM_Name maxStabilityIterationsName("maxStabilityIterations", "Constraints Stability Iterations");
+static PRM_Name maxIterationsName("maxIterations", "Max Path finding Iterations");
 static PRM_Name generateCommandName("generateCommand", "Update");
 static PRM_Name simulateSceneCommand("simulateScene", "Simulate Scene");
 static PRM_Name loadFileCommand("loadFile", "Load Scene from File");
@@ -136,7 +136,7 @@ static PRM_Default filePathDefault(0.0, "P:\\ubuntu\\PeepSim\\Projects\\src\\sce
 static PRM_Default velocityBlendDefault(0.4);
 static PRM_Default maxVelocityDefault(2.0);
 static PRM_Default maxStabilityIterationsDefault(10);
-static PRM_Default maxIterationsDefault(5);
+static PRM_Default maxIterationsDefault(100);
 
 static PRM_Default collisionMarchingStepsDefault(1000);
 static PRM_Default targetPositionDefault[] = {
@@ -327,16 +327,16 @@ void AgentNode::initialize(fpreal frame) {
 		float yPos = 0;
 		float zPos = source[1] + i * height;
 
-    float xTargetPos = target[0] + i * width;
-    float zTargetPos = target[1] + i * height;
+		float xTargetPos = target[0] + i * width;
+		float zTargetPos = target[1] + i * height;
 
 		Agent newAgent;
 
 		newAgent.mMass = mass;
 		newAgent.mRadius = radius;
 
-    newAgent.mCurrVelocity = Vector(0, 0);
-    newAgent.mForce = Vector(0, 0);
+		newAgent.mCurrVelocity = Vector(0, 0);
+		newAgent.mForce = Vector(0, 0);
 
 		newAgent.mStartPosition = Vector(xPos, zPos);
 		newAgent.mCurrPosition = newAgent.mStartPosition;
@@ -463,11 +463,11 @@ PRM_Template PeepSimSolver::myTemplateList[] = {
   PRM_Template(PRM_INT_J, 1, &maxIterationsName, &maxIterationsDefault),
   PRM_Template(PRM_INT_J, 1, &collisionMarchingStepsName, &collisionMarchingStepsDefault),
 
-	PRM_Template(PRM_CALLBACK, 1, &simulateSceneCommand, 0, 0, 0, PeepSimSolver::simulateScene),
-
   PRM_Template(PRM_STRING, PRM_Template::PRM_EXPORT_MIN, 1, &filePath, &filePathDefault, 0),
 
   PRM_Template(PRM_CALLBACK, 1, &loadFileCommand, 0, 0, 0, PeepSimSolver::loadFromFileCallback),
+
+  PRM_Template(PRM_CALLBACK, 1, &simulateSceneCommand, 0, 0, 0, PeepSimSolver::simulateScene),
 
 	PRM_Template()
 };
@@ -580,6 +580,20 @@ void PeepSimSolver::loadFromFile(fpreal time) {
     return;
   }
 
+  // Delete all existing children of Agent Merge node
+  OP_NodeList existingNodes;
+  int inputsize = agentMergeNode->getInputsArraySize();
+  std::vector<OP_Node*> nodesToDelete;
+  for (int i = 0; i < inputsize; ++i) {
+	  OP_Node *node = agentMergeNode->getInput(i);
+	  nodesToDelete.push_back(node);
+  }
+  for (OP_Node *node : nodesToDelete) {
+	  ((OP_Network*)crowdSourceNode)->destroyNode(node);
+  }
+
+  inputsize = agentMergeNode->getInputsArraySize();
+  
   std::string path = filePath.toStdString();
 
   printf("Loading File From: %s \n", path.c_str());

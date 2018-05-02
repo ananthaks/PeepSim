@@ -19,6 +19,11 @@ inline float H_COST_DIG(int currX, int currZ, int targetX, int targetZ) {
 }
 
 void AStarFinder::initialize(Scene &scene) {
+	for (int i = 0; i < mGridWidth; ++i) {
+		for (int j = 0; j < mGridHeight; ++j) {
+			mNodes[i][j].isBlocked = false;
+		}
+	}
   for(auto& collider: scene.mColliders) {
     collider->fillCollisionSpace(mNodes, mGridWidth, mGridHeight);
   }
@@ -28,8 +33,15 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
 
   bool pathFound = false;
 
+  printf("The Path finder params are %d %d \n", mConfig.mPathGridSize, mConfig.mMaxIterations);
+  printf("The Path finder params2  are %d %d \n", mGridWidth, mGridHeight);
+
   std::pair<int, int> startPos = std::make_pair(std::floor(currPos[0] + mConfig.mPathGridSize / 2.f), std::floor(currPos[1] + mConfig.mPathGridSize / 2.f));
   std::pair<int, int> endPos = std::make_pair(std::floor(targetPos[0] + mConfig.mPathGridSize / 2.f), std::floor(targetPos[1] + mConfig.mPathGridSize / 2.f));
+
+
+  printf("Start Position is %d %d \n", startPos.first, startPos.second);
+  printf("End Position is %d %d \n", endPos.first, endPos.second);
 
   // target & source at same location
   if(startPos.first == endPos.first && startPos.second == endPos.second) {
@@ -66,7 +78,7 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
     itera++;
 
     if(itera > 10000) {
-      std::cout << "Breaking main from infinite loop " << itera << std::endl;
+		printf("Breaking main from infinite loop %d \n", itera);
       break;
     }
 
@@ -115,6 +127,10 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
       }
     }
 
+	if (pathFound) {
+		break;
+	}
+
     if(!mAllowDiagonal) {
       continue;
     }
@@ -122,8 +138,9 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
     // Diagonals
     for(int p = 0; p  < 4; ++p) {
 
-      newX = i - 1 * (p < 2? (p == 0 ? 1 : -1): 0);
-      newZ = j - 1 * (p < 2? 0: (p == 2 ? 1 : -1));
+
+	  newX = i - 1 * (p % 2 == 0 ? 1 : -1);
+	  newZ = j - 1 * (p < 2 ? 1 : -1);
 
       if(newX >= 0 && newX < mGridWidth && newZ >= 0 && newZ < mGridHeight && !mNodes[newX][newZ].isBlocked) {
         if(newX == endPos.first && newZ == endPos.second) {
@@ -153,6 +170,9 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
       }
     }
 
+	if (pathFound) {
+		break;
+	}
   }
 
   // Trace The path
@@ -169,16 +189,18 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
       itera++;
 
       if(itera > mConfig.mMaxIterations) {
-        std::cout << "Breaking path from infinite loop" << std::endl;
+		  printf("Breaking path from infinite loop %d \n", itera);
         break;
       }
-      path.push_back(Vector(x - mConfig.mPathGridSize / 2.f, z - mConfig.mPathGridSize / 2.f));
-      tempX = mNodes[x][z].parentX;
-      tempZ = mNodes[x][z].parentZ;
-      x = tempX;
-      z = tempZ;
-    }
+	  tempX = x - mConfig.mPathGridSize / 2.f;
+	  tempZ = z - mConfig.mPathGridSize / 2.f;
+      path.push_back(Vector(tempX, tempZ));
+	  tempX = mNodes[x][z].parentX;
+	  tempZ = mNodes[x][z].parentZ;
+	  x = tempX;
+	  z = tempZ;
 
+    }
   }
 
   return pathFound;
