@@ -52,8 +52,10 @@ struct PeepSimConfig {
   int mCollisionMarchSteps{1000};
   float mPoly6Kernel{1.566681471f};
   int mPathGridSize{100};
+
   float mMinDistanceToTarget{0.2f};
-  float mAvoidanceMaxTau{20.0f};
+  float mAvoidanceMaxTau{1.0f};
+  float mAvoidanceStiffness{ 0.04f };
 
   void create() {
     mTimeStep = 1.0f / mFPS;

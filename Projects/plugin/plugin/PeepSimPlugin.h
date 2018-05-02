@@ -141,6 +141,10 @@ namespace HDK_Sample {
 			evalFloats("sourcePos", pos.data(), n);
 		}
 
+    void AGENT_SPACING(fpreal n, UT_Vector2R &pos) {
+      evalFloats("agentSpacing", pos.data(), n);
+    }
+
 		void SHAPE_SIZE(fpreal n, UT_Vector2R &pos) {
 			evalFloats("shapeSize", pos.data(), n);
 		}
