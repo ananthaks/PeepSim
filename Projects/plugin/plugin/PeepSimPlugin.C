@@ -287,12 +287,6 @@ int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Tem
 	
 	me->getAgentGroup()->mAgents.push_back(newAgent);
 
-  printf("AgentNode :: The mass & radius was %f %f \n", mass, radius);
-	printf("AgentNode :: The position of the node was %f %f \n", source[0], source[1]);
-  printf("AgentNode :: The target of the node was %f %f \n", target[0], target[1]);
-	printf("AgentNode :: The position of the node was %f %f \n", me->getAgentGroup()->mAgents[0].mCurrPosition.x, me->getAgentGroup()->mAgents[0].mCurrPosition.y);
-
-
 	me->mInitialized = false;
 
 	// For some reason, we cannot add geometry from this thread
@@ -371,8 +365,6 @@ void AgentNode::initialize(fpreal frame) {
 
 	mNumAgents = numAgents;
 
-	printf("Initializing nodes %d \n ", mNumAgents);
-
 	gdp->clearAndDestroy();
 
 	float width = size[0];
@@ -393,6 +385,8 @@ void AgentNode::initialize(fpreal frame) {
   std::uniform_real_distribution<double> heightRandom(0.0, (height - 1) * ySpace);
 
   int deployedAgents = 0;
+
+  mAgentgroup.mAgents.clear();
 
   for (int w = 0; w < width; ++w) {
     for (int h = 0; h < height; ++h) {
@@ -447,34 +441,6 @@ void AgentNode::initialize(fpreal frame) {
       ++deployedAgents;
     }
   }
-
-	/*for (int i = 0; i < mNumAgents; ++i) {
-
-		float xPos = source[0] +  i * width;
-		float yPos = 0;
-		float zPos = source[1] + i * height;
-
-		float xTargetPos = target[0] + i * width;
-		float zTargetPos = target[1] + i * height;
-
-		Agent newAgent;
-
-		newAgent.mMass = mass;
-		newAgent.mRadius = radius;
-
-		newAgent.mCurrVelocity = Vector(0, 0);
-		newAgent.mForce = Vector(0, 0);
-
-		newAgent.mStartPosition = Vector(xPos, zPos);
-		newAgent.mCurrPosition = newAgent.mStartPosition;
-		newAgent.mTargetPosition = Vector(xTargetPos, zTargetPos);
-		newAgent.mReference = geometry;
-
-		newAgent.mCurrGeo = addAgent(xPos, yPos, zPos);
-
-		mAgentgroup.mAgents.push_back(newAgent);
-	}*/
-
 }
 
 GEO_Primitive* AgentNode::addAgent(fpreal x, fpreal y, fpreal z, float radius) {
@@ -493,7 +459,7 @@ GEO_Primitive* AgentNode::addAgent(fpreal x, fpreal y, fpreal z, float radius) {
 void AgentNode::update(fpreal timeStep) {
 
 	int frameId = timeStep;
-
+	
 	for (int i = 0; i < mAgentgroup.mAgents.size(); ++i) {
 
 		GEO_Primitive *sphere = mAgentgroup.mAgents[i].mCurrGeo;
@@ -504,18 +470,14 @@ void AgentNode::update(fpreal timeStep) {
 		float xPos = mAgentgroup.mAgents[i].mCachedPos[frameId].x;
 		float yPos = 0;
 		float zPos = mAgentgroup.mAgents[i].mCachedPos[frameId].y;
+
+
 		sphere->setPos3(0, UT_Vector3F(xPos, yPos, zPos));
 	}
 }
 
 OP_ERROR AgentNode::cookMySop(OP_Context& context) {
 
-	printf("Agent Node is Cooked >>>> \n");
-
-	if (mSimResults != nullptr) {
-		int size = mSimResults->mPositions.size();
-		printf("Cooking Sop with >>>> %d \n", size);
-	}
 
 	OP_Node::flags().timeDep = 1;
 
@@ -648,7 +610,7 @@ void PeepSimSolver::getOutputInfoSubclass(int outputidx, DOP_InOutInfo &info) co
 */
 void PeepSimSolver::processObjectsSubclass(fpreal time, int, const SIM_ObjectArray &objects, DOP_Engine &engine)
 {
-	
+
 }
 
 void PeepSimSolver::loadFromFile(fpreal time) {
@@ -660,8 +622,8 @@ void PeepSimSolver::loadFromFile(fpreal time) {
   OP_Context myContext(time);
 
   OP_Node *parent = getParent();
+  
   if (parent == nullptr) {
-    printf("Load Failed: Can't find parent \n");
     return;
   }
 
@@ -696,12 +658,10 @@ void PeepSimSolver::loadFromFile(fpreal time) {
 
   // Get the agent group merge Node
   if (crowdSourceNode == nullptr) {
-    printf("Load Failed: Can't find crowdSource Node \n");
     return;
   }
 
   if (environmentNode == nullptr) {
-    printf("Load Failed: Can't find environment Node \n");
     return;
   }
 
@@ -722,12 +682,10 @@ void PeepSimSolver::loadFromFile(fpreal time) {
   }
 
   if (envMergeNode == nullptr) {
-    printf("Load Failed: Can't find Environment Merge Node \n");
     return;
   }
 
   if (agentMergeNode == nullptr) {
-    printf("Load Failed: Can't find Merge Node \n");
     return;
   }
 
@@ -760,8 +718,6 @@ void PeepSimSolver::loadFromFile(fpreal time) {
   inputsize = agentMergeNode->getInputsArraySize();
   
   std::string path = filePath.toStdString();
-
-  printf("Loading File From: %s \n", path.c_str());
 
   std::ifstream inputFileStream(filePath);
   std::string jsonData;
@@ -820,12 +776,10 @@ void PeepSimSolver::loadFromFile(fpreal time) {
 	  OP_Node* node = ((OP_Network*)crowdSourceNode)->createNode("AgentGroup", nodeName.c_str());
 
 	  if (node == nullptr) {
-		  printf("Load Failed: Can't create node \n");
 		  return;
 	  }
 
 	  if (!node->runCreateScript()) {
-		  printf("Load Failed: Can't create script error \n");
 		  return;
 	  }
 
@@ -900,12 +854,10 @@ void PeepSimSolver::loadFromFile(fpreal time) {
     OP_Node* node = ((OP_Network*)environmentNode)->createNode("box", nodeName.c_str());
 
     if (node == nullptr) {
-      printf("Load Failed: Can't create node \n");
       return;
     }
 
     if (!node->runCreateScript()) {
-      printf("Load Failed: Can't create script error \n");
       return;
     }
 
@@ -922,8 +874,6 @@ void PeepSimSolver::loadFromFile(fpreal time) {
     envMergeNode->setInput(envMergeNode->getInputsArraySize(), node);
     node->moveToGoodPosition();
   }
-
-  printf("Loading JSON Completed\n");
 }
 
 void PeepSimSolver::updateScene(fpreal time) {
@@ -947,7 +897,7 @@ void PeepSimSolver::updateScene(fpreal time) {
 	int stabilityIterations = STABILITYITERATIONS(time);
 	int maxIterations = MAXITERATIONS(time);
 	int collisionSteps = COLLISIONSTEPS(time);
-  int simDuration = DURATION(time);
+	int simDuration = DURATION(time);
 
 	mConfig = PeepSimConfig();
 	mConfig.mMaxVelocity = maxVelocity;
@@ -955,7 +905,7 @@ void PeepSimSolver::updateScene(fpreal time) {
 	mConfig.mMaxStabilityIterations = stabilityIterations;
 	mConfig.mMaxIterations = maxIterations;
 	mConfig.mCollisionMarchSteps = collisionSteps;
-  mConfig.mSimualtionDuration = simDuration;
+	mConfig.mSimualtionDuration = simDuration;
 	mConfig.create();
 
 	// Start Fetching the agent data from Houdini
@@ -993,9 +943,6 @@ void PeepSimSolver::updateScene(fpreal time) {
 				}
 			}
 		}
-		else {
-			printf("PeepSimSolver::updateScene: Can't find Crowd Source Node \n");
-		}
 
 		// Get all the agent groups which needs to be shown
 		if (agentMergeNode != nullptr) {
@@ -1007,9 +954,6 @@ void PeepSimSolver::updateScene(fpreal time) {
 				AgentNode *agentNode = ((AgentNode*)CAST_SOPNODE(node));
 				mAgentGroupNodes.push_back(agentNode);
 			}
-		}
-		else {
-			printf("PeepSimSolver::updateScene: Can't find `Merge Node \n");
 		}
 
 
@@ -1033,9 +977,6 @@ void PeepSimSolver::updateScene(fpreal time) {
 				}
 			}
 		}
-		else {
-			printf("PeepSimSolver::updateScene: Can't find Environment Merge Node \n");
-		}
 
 		// Get all the agent groups which needs to be shown
 		if (envMergeNode != nullptr) {
@@ -1050,14 +991,11 @@ void PeepSimSolver::updateScene(fpreal time) {
 					UT_BoundingBoxF mBoundingBox;
 					boxNode->getBoundingBox(mBoundingBox, myContext);
 
-
 					float minx = mBoundingBox.minvec()[0];
 					float minz = mBoundingBox.minvec()[2];
 
 					float sizex = mBoundingBox.size()[0];
 					float sizeZ = mBoundingBox.size()[2];
-
-					printf("The collider size is %f %f %f %f \n", minx, minz, sizex, sizeZ);
 
 					std::pair<Vector, Vector> mBoundingPair = std::make_pair(Vector(minx, minz), Vector(sizex, sizeZ));
 
@@ -1065,43 +1003,21 @@ void PeepSimSolver::updateScene(fpreal time) {
 				}
 			}
 		}
-		else {
-			printf("PeepSimSolver::updateScene: Can't find `Merge Node \n");
-		}
-
-
 	}
 
 	std::vector<AgentGroup*> mAllAgentGroups;
-
-
 	int numAgents = 0;
-
-
 	for (AgentNode *node : mAgentGroupNodes) {
-		printf("Agent Group in Node Size: %d \n", node->getAgentGroup()->mAgents.size());
 		mAllAgentGroups.push_back(node->getAgentGroup());
 		numAgents += node->getAgentGroup()->mAgents.size();
 	}
-
-	printf("PeepSimSolver::updateScene >>>> \n");
-	// Run the Crowd Simulation and cook the agents node
 
 	mScene = Scene(mConfig);
 	mScene.addAgentGroups(mAllAgentGroups);
 	mScene.addColliders(mColliders);
 	mScene.mNumAgents = numAgents;
 
-  //printf("YOLO %f, %f \n", mAllAgentGroups[0]->mAgents[0].mMass, mAllAgentGroups[0]->mAgents[0].mRadius);
-
-	// TODO: add colliders
-
-	// We can remove this later
-	//mScene.loadFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
-  // mScene.loadFromFile("P:\\ubuntu\\PeepSim\\Projects\\src\\scenes\\scene_5.json");
-
 	CrowdSim simulation = CrowdSim(mConfig, mScene);
-	//simulation.loadSceneFromFile("E:\\Git\\PeepSim\\Projects\\plugin\\plugin\\scenes\\scene_5.json");
 	mSimResults = simulation.evaluate();
 
 	hasCookedSop = true;
@@ -1110,8 +1026,6 @@ void PeepSimSolver::updateScene(fpreal time) {
 		if (agent != nullptr) {
 			agent->updateScene(&mScene);
 			agent->mInitialized = false;
-
-			printf("Number of Cached Positions in this Group Node %d \n", agent->getAgentGroup()->mAgents[0].mCachedPos.size());
 
 			OP_Context context;
 			context.setFrame(currframe);

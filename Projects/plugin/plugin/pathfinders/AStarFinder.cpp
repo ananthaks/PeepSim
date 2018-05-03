@@ -33,15 +33,8 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
 
   bool pathFound = false;
 
-  printf("The Path finder params are %d %d \n", mConfig.mPathGridSize, mConfig.mMaxIterations);
-  printf("The Path finder params2  are %d %d \n", mGridWidth, mGridHeight);
-
   std::pair<int, int> startPos = std::make_pair(std::floor(currPos[0] + mConfig.mPathGridSize / 2.f), std::floor(currPos[1] + mConfig.mPathGridSize / 2.f));
   std::pair<int, int> endPos = std::make_pair(std::floor(targetPos[0] + mConfig.mPathGridSize / 2.f), std::floor(targetPos[1] + mConfig.mPathGridSize / 2.f));
-
-
-  printf("Start Position is %d %d \n", startPos.first, startPos.second);
-  printf("End Position is %d %d \n", endPos.first, endPos.second);
 
   // target & source at same location
   if(startPos.first == endPos.first && startPos.second == endPos.second) {
@@ -78,7 +71,6 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
     itera++;
 
     if(itera > mConfig.mMaxPathFindingIterations) {
-		printf("Breaking main from infinite loop %d \n", itera);
       break;
     }
 
@@ -189,7 +181,6 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
       itera++;
 
       if(itera > mConfig.mMaxPathFindingIterations) {
-		  printf("Breaking path from infinite loop %d \n", itera);
         break;
       }
 	  tempX = x - mConfig.mPathGridSize / 2.f;

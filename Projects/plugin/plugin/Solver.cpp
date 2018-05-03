@@ -56,7 +56,6 @@ Results Solver::solve(Scene& scene) {
 
 
 #ifdef PATH_FINDER_ON
-  int64_t startTime = getTimestamp();
 
   mPathFinder.initialize(scene);
   for (int i = 0; i < mAgents.size(); ++i) {
@@ -71,7 +70,6 @@ Results Solver::solve(Scene& scene) {
     agent->currTarget = 0;
   }
 
-  printf("PathFinding took %" PRId64 "ms\n", getTimestamp() - startTime);
 #endif
 
 
@@ -81,8 +79,6 @@ Results Solver::solve(Scene& scene) {
 
   for (int frame = 0; frame < numIterations; ++frame) {
 
-    // For Debug:
-    // std::cout << "Processing Frame: " << frame << std::endl;
 
     // Step 0: Write current frame to file
     scene.outputFrame(frame);
