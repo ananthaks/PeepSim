@@ -80,6 +80,7 @@ static PRM_Name maxIterationsName("maxIterations", "Max Constraint Iterations");
 static PRM_Name generateCommandName("generateCommand", "Update");
 static PRM_Name simulateSceneCommand("simulateScene", "Simulate Scene");
 static PRM_Name loadFileCommand("loadFile", "Load Scene from File");
+static PRM_Name simDurationName("simDuration", "Simulation Duration (s)");
 
 /*
 * The GUI parameters to the agent node
@@ -137,6 +138,7 @@ static PRM_Default filePathDefault(0.0, "P:\\ubuntu\\PeepSim\\Projects\\src\\sce
 static PRM_Default velocityBlendDefault(0.4);
 static PRM_Default maxVelocityDefault(2.0);
 static PRM_Default maxStabilityIterationsDefault(10);
+static PRM_Default simDurationDefault(10.0);
 static PRM_Default maxIterationsDefault(5);
 
 static PRM_Default collisionMarchingStepsDefault(1000);
@@ -504,6 +506,8 @@ PRM_Template PeepSimSolver::myTemplateList[] = {
 	// each object.
 	PRM_Template(PRM_INT_J,	1, &theInputIndexName, PRMzeroDefaults),
 
+  PRM_Template(PRM_FLT, 1, &simDurationName, &simDurationDefault),
+
   PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &velocityBlendName, &velocityBlendDefault, 0),
   PRM_Template(PRM_FLT, PRM_Template::PRM_EXPORT_MIN, 1, &maxVelocityName, &maxVelocityDefault, 0),
   PRM_Template(PRM_INT_J, 1, &maxStabilityIterationsName, &maxStabilityIterationsDefault),
@@ -592,6 +596,7 @@ void PeepSimSolver::loadFromFile(fpreal time) {
   parent = parent->getParent();
 
   OP_NodeList crowdData;
+  OP_NodeList envData;
   OP_NodeList siblings;
   OP_NodeList agentGroups;
 
@@ -599,6 +604,8 @@ void PeepSimSolver::loadFromFile(fpreal time) {
 
   OP_Node *crowdSourceNode = nullptr;
   OP_Node *agentMergeNode = nullptr;
+  OP_Node *environmentNode = nullptr;
+  OP_Node *envMergeNode = nullptr;
 
   // Get the CrowdSource Node
   for (OP_Node* node : siblings) {
@@ -608,9 +615,21 @@ void PeepSimSolver::loadFromFile(fpreal time) {
     }
   }
 
+  for (OP_Node* node : siblings) {
+    if (node->getName().compare("Environment", false) == 0) {
+      environmentNode = node;
+      break;
+    }
+  }
+
   // Get the agent group merge Node
   if (crowdSourceNode == nullptr) {
     printf("Load Failed: Can't find crowdSource Node \n");
+    return;
+  }
+
+  if (environmentNode == nullptr) {
+    printf("Load Failed: Can't find environment Node \n");
     return;
   }
 
@@ -622,6 +641,19 @@ void PeepSimSolver::loadFromFile(fpreal time) {
     }
   }
 
+  environmentNode->getAllChildren(envData);
+  for (OP_Node* node : envData) {
+    if (node->getOperator()->getName().compare("merge", false) == 0) {
+      envMergeNode = node;
+      break;
+    }
+  }
+
+  if (envMergeNode == nullptr) {
+    printf("Load Failed: Can't find Environment Merge Node \n");
+    return;
+  }
+
   if (agentMergeNode == nullptr) {
     printf("Load Failed: Can't find Merge Node \n");
     return;
@@ -631,12 +663,26 @@ void PeepSimSolver::loadFromFile(fpreal time) {
   OP_NodeList existingNodes;
   int inputsize = agentMergeNode->getInputsArraySize();
   std::vector<OP_Node*> nodesToDelete;
+  std::vector<OP_Node*> envNodesToDelete;
+
   for (int i = 0; i < inputsize; ++i) {
 	  OP_Node *node = agentMergeNode->getInput(i);
 	  nodesToDelete.push_back(node);
   }
+
   for (OP_Node *node : nodesToDelete) {
 	  ((OP_Network*)crowdSourceNode)->destroyNode(node);
+  }
+
+  inputsize = envMergeNode->getInputsArraySize();
+
+  for (int i = 0; i < inputsize; ++i) {
+    OP_Node *node = envMergeNode->getInput(i);
+    envNodesToDelete.push_back(node);
+  }
+
+  for (OP_Node *node : envNodesToDelete) {
+    ((OP_Network*)environmentNode)->destroyNode(node);
   }
 
   inputsize = agentMergeNode->getInputsArraySize();
@@ -659,6 +705,7 @@ void PeepSimSolver::loadFromFile(fpreal time) {
   auto data = Json::parse(jsonData);
 
   auto jsonGroups = data["agentGroups"];
+  auto jsonColliders = data["colliders"];
 
   int count = 1;
 
@@ -758,6 +805,52 @@ void PeepSimSolver::loadFromFile(fpreal time) {
 	  node->moveToGoodPosition();
   }
 
+  int envCount = 0;
+
+  for (Json::iterator it = jsonColliders.begin(); it != jsonColliders.end(); ++it) {
+    /*{
+      "origin": [0, 0],
+      "dimensions" : [1, 4, 1],
+      "type" : "box"
+    }*/
+    auto collider = *it;
+
+    float jsonOrigin[2] = {
+      collider["origin"][0].get<float>(), collider["origin"][1].get<float>()
+    };
+
+    float jsonDimensions[3] = {
+      collider["dimensions"][0].get<float>(), collider["dimensions"][1].get<float>(), collider["dimensions"][2].get<float>()
+    };
+
+    std::string nodeName = "BoxCollider_" + std::to_string(envCount);
+
+    OP_Node* node = ((OP_Network*)environmentNode)->createNode("box", nodeName.c_str());
+
+    if (node == nullptr) {
+      printf("Load Failed: Can't create node \n");
+      return;
+    }
+
+    if (!node->runCreateScript()) {
+      printf("Load Failed: Can't create script error \n");
+      return;
+    }
+
+    node->setFloat("size", 0, time, jsonDimensions[0]);
+    node->setFloat("size", 1, time, jsonDimensions[2]);
+    node->setFloat("size", 2, time, jsonDimensions[1]);
+
+    node->setFloat("t", 0, time, jsonOrigin[0] + jsonDimensions[0] / 2.0f);
+    node->setFloat("t", 1, time, jsonDimensions[2] / 2.0f);
+    node->setFloat("t", 2, time, jsonOrigin[1] + jsonDimensions[1] / 2.0f);
+
+    ++envCount;
+
+    envMergeNode->setInput(envMergeNode->getInputsArraySize(), node);
+    node->moveToGoodPosition();
+  }
+
   printf("Loading JSON Completed\n");
 }
 
@@ -782,6 +875,7 @@ void PeepSimSolver::updateScene(fpreal time) {
 	int stabilityIterations = STABILITYITERATIONS(time);
 	int maxIterations = MAXITERATIONS(time);
 	int collisionSteps = COLLISIONSTEPS(time);
+  int simDuration = DURATION(time);
 
 	mConfig = PeepSimConfig();
 	mConfig.mMaxVelocity = maxVelocity;
@@ -789,6 +883,7 @@ void PeepSimSolver::updateScene(fpreal time) {
 	mConfig.mMaxStabilityIterations = stabilityIterations;
 	mConfig.mMaxIterations = maxIterations;
 	mConfig.mCollisionMarchSteps = collisionSteps;
+  mConfig.mSimualtionDuration = simDuration;
 	mConfig.create();
 
 	// Start Fetching the agent data from Houdini

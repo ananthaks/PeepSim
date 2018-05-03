@@ -63,6 +63,7 @@ namespace HDK_Sample {
     fpreal  STABILITYITERATIONS(fpreal t) { return evalInt("maxStabilityIterations", 0, t); }
     fpreal  MAXITERATIONS(fpreal t) { return evalInt("maxIterations", 0, t); }
     fpreal  COLLISIONSTEPS(fpreal t) { return evalInt("collisionSteps", 0, t); }
+    fpreal  DURATION(fpreal t) { return evalFloat("simDuration", 0, t); }
 
     void FILEPATH(UT_String &label, fpreal t)
     {
