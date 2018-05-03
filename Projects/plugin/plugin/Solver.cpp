@@ -1,5 +1,9 @@
 #include "Solver.h"
 
+#include <chrono>
+#include <stdint.h>
+#include <inttypes.h>
+
 #define PATH_FINDER_ON
 
 
@@ -21,6 +25,14 @@ inline float W(Vector distance, float h, float kernel) {
   return (0.f <= r && r <= h) ? (kernel * (pow(h * h - r * r, 3)) / (pow(h, 9))) : 0.f;
 }
 
+int64_t getTimestamp() {
+	int64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now().time_since_epoch()
+	).count();
+
+	return ms;
+}
+
 Results Solver::solve(Scene& scene) {
 
   using SizeType = std::size_t;
@@ -30,15 +42,10 @@ Results Solver::solve(Scene& scene) {
   std::vector<Agent*> mAgents;
   mAgents.resize(scene.mNumAgents);
 
-
   int count = 0;
-
-  printf("The size in solver is %d \n", scene.mAgentGroups.size());
 
   for (SizeType groupIdx = 0; groupIdx < scene.mAgentGroups.size(); groupIdx++) {
     auto group = scene.mAgentGroups[groupIdx];
-
-	printf("The number of agents is %d \n", group->mAgents.size());
 
     for (SizeType agentIdx = 0; agentIdx < group->mAgents.size(); agentIdx++) {
       mAgents[count] = &(scene.mAgentGroups[groupIdx]->mAgents[agentIdx]);
@@ -47,25 +54,26 @@ Results Solver::solve(Scene& scene) {
     }
   }
 
-  printf("Break Point 1");
 
 #ifdef PATH_FINDER_ON
+  int64_t startTime = getTimestamp();
+
   mPathFinder.initialize(scene);
   for (int i = 0; i < mAgents.size(); ++i) {
 
     Agent* agent = mAgents[i];
     std::vector<Vector> resultPath;
+
+
     bool result = mPathFinder.getPathToTarget(agent->mCurrPosition, agent->mTargetPosition,
                                               resultPath);
     agent->mPlannedPath = resultPath;
-
-	printf("The planned path size is %d \n", agent->mPlannedPath.size());
-
     agent->currTarget = 0;
   }
+
+  printf("PathFinding took %" PRId64 "ms\n", getTimestamp() - startTime);
 #endif
 
-  printf("The in path finding is %d \n", mAgents.size());
 
   const int numIterations = mConfig.mFPS * mConfig.mSimualtionDuration;
 
@@ -90,7 +98,6 @@ Results Solver::solve(Scene& scene) {
 		  Vector dist = target - agent->mCurrPosition;
 
 		  if (dist.Length() < mConfig.mMinDistanceToTarget) {
-			  printf("Changing Target\n");
 
 				agent->currTarget = agent->currTarget + 1;
 		  }
@@ -163,7 +170,7 @@ Results Solver::solve(Scene& scene) {
       for (SizeType a = 0; a < mAgents.size(); ++a) {
         Agent* currAgent = mAgents[a];
         Vector deltaPos = mColliderConstraint.evaluate(scene, *currAgent);
-        currAgent->mProposedPosition = currAgent->mProposedPosition + deltaPos;
+        //currAgent->mProposedPosition = currAgent->mProposedPosition + deltaPos;
       }
     }
 
@@ -215,8 +222,5 @@ Results Solver::solve(Scene& scene) {
 	    agent->mCachedPos.push_back(agent->mCurrPosition);
     }
   }
-
-  printf("Number of mAgents is %d \n", mAgents.size());
-  printf("Number of mAgents[0] Cached Size is %d \n", mAgents[0]->mCachedPos.size());
   return results;
 }

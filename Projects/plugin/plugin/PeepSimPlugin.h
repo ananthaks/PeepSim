@@ -104,7 +104,7 @@ namespace HDK_Sample {
 
 		void initialize(fpreal frame);
 
-		GEO_Primitive* addAgent(fpreal x, fpreal y, fpreal z);
+		GEO_Primitive* addAgent(fpreal x, fpreal y, fpreal z, float radius);
 
 		void update(fpreal timeStep);
 

@@ -77,7 +77,7 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
 
     itera++;
 
-    if(itera > 10000) {
+    if(itera > mConfig.mMaxPathFindingIterations) {
 		printf("Breaking main from infinite loop %d \n", itera);
       break;
     }
@@ -188,7 +188,7 @@ bool AStarFinder::getPathToTarget(Vector &currPos, Vector &targetPos, std::vecto
 
       itera++;
 
-      if(itera > mConfig.mMaxIterations) {
+      if(itera > mConfig.mMaxPathFindingIterations) {
 		  printf("Breaking path from infinite loop %d \n", itera);
         break;
       }

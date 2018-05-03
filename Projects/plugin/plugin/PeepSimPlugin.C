@@ -76,7 +76,7 @@ static PRM_Name filePath("filePath", "File Path");
 static PRM_Name velocityBlendName("velocityBlend", "Velocity Blend");
 static PRM_Name maxVelocityName("maxVelocity", "Max Velocity");
 static PRM_Name maxStabilityIterationsName("maxStabilityIterations", "Constraints Stability Iterations");
-static PRM_Name maxIterationsName("maxIterations", "Max Path finding Iterations");
+static PRM_Name maxIterationsName("maxIterations", "Max Constraint Iterations");
 static PRM_Name generateCommandName("generateCommand", "Update");
 static PRM_Name simulateSceneCommand("simulateScene", "Simulate Scene");
 static PRM_Name loadFileCommand("loadFile", "Load Scene from File");
@@ -137,7 +137,7 @@ static PRM_Default filePathDefault(0.0, "P:\\ubuntu\\PeepSim\\Projects\\src\\sce
 static PRM_Default velocityBlendDefault(0.4);
 static PRM_Default maxVelocityDefault(2.0);
 static PRM_Default maxStabilityIterationsDefault(10);
-static PRM_Default maxIterationsDefault(100);
+static PRM_Default maxIterationsDefault(5);
 
 static PRM_Default collisionMarchingStepsDefault(1000);
 static PRM_Default targetPositionDefault[] = {
@@ -314,7 +314,7 @@ void AgentNode::initialize(fpreal frame) {
 	
 	SHAPE_SIZE(frame, size);
 	SOURCE_POS(frame, source);
-  AGENT_SPACING(frame, spacing);
+	 AGENT_SPACING(frame, spacing);
 	TARGET_POS(frame, target);
 
 	int sampleShape = SAMPLE_SHAPE(frame);
@@ -366,7 +366,7 @@ void AgentNode::initialize(fpreal frame) {
       newAgent.mTargetPosition = Vector(xTargetPos, zTargetPos);
       newAgent.mReference = geometry;
 
-      newAgent.mCurrGeo = addAgent(xPos, yPos, zPos);
+      newAgent.mCurrGeo = addAgent(xPos, yPos, zPos, newAgent.mRadius);
 
       mAgentgroup.mAgents.push_back(newAgent);
 
@@ -403,13 +403,13 @@ void AgentNode::initialize(fpreal frame) {
 
 }
 
-GEO_Primitive* AgentNode::addAgent(fpreal x, fpreal y, fpreal z) {
+GEO_Primitive* AgentNode::addAgent(fpreal x, fpreal y, fpreal z, float radius) {
 
 	GU_PrimSphereParms parms(gdp);
+	parms.xform.scale(radius, radius, radius);
 	parms.freq = 1;
 
 	GEO_Primitive *sphere = GU_PrimSphere::build(parms, GEO_PRIMSPHERE);
-
 	sphere->setPos3(0, UT_Vector3F(x, y, z));
 
 	return sphere;
@@ -425,18 +425,12 @@ void AgentNode::update(fpreal timeStep) {
 		GEO_Primitive *sphere = mAgentgroup.mAgents[i].mCurrGeo;
 
 		if (sphere == nullptr || frameId >= mAgentgroup.mAgents[i].mCachedPos.size()) {
-      printf("Break here %d", sphere == nullptr);
 			continue;
 		}
-		
 		float xPos = mAgentgroup.mAgents[i].mCachedPos[frameId].x;
 		float yPos = 0;
 		float zPos = mAgentgroup.mAgents[i].mCachedPos[frameId].y;
-
-		printf("Agent Update  Geometry found %f %f >> \n", xPos, zPos);
-
 		sphere->setPos3(0, UT_Vector3F(xPos, yPos, zPos));
-
 	}
 }
 
