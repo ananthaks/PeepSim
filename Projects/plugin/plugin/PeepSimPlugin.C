@@ -27,6 +27,8 @@
 #include <PI/PI_ResourceManager.h>
 #include <MOT/MOT_Director.h>
 
+#include <random>
+
 #include "external/json.hpp"
 
 static float numAgent = 10.0;
@@ -301,6 +303,51 @@ int AgentNode::addAgentCallback(void* data, int index, float time, const PRM_Tem
 
 }
 
+UT_Vector2 squareToDiskConcentric(float x, float y)
+{
+  float Pi = 3.14159f;
+
+  float radius, angle;
+
+  float a = 2.0f * x - 1.0f;
+  float b = 2.0f * y - 1.0f;
+
+  if (a > -b) {
+    if (a > b) {
+      radius = a;
+      angle = (Pi / 4.0f) * (b / a);
+    }
+    else {
+      radius = b;
+      angle = (Pi / 4.0f) * (2.0f - (a / b));
+    }
+  }
+  else {
+    if (a < b) {
+      radius = -a;
+      angle = (Pi / 4.0f) * (4.0f + (b / a));
+    }
+    else {
+      radius = -b;
+      if (b != 0) {
+        angle = (Pi / 4.0f) * (6.0f - (a / b));
+      }
+      else {
+        angle = 0.0f;
+      }
+    }
+  }
+
+  float finalX = radius * cos(angle);
+  float finalY = radius * sin(angle);
+
+  UT_Vector2 result;
+  result[0] = finalX;
+  result[1] = finalY;
+
+  return result;
+}
+
 void AgentNode::initialize(fpreal frame) {
 	
 	OP_Context myContext(frame);
@@ -339,6 +386,12 @@ void AgentNode::initialize(fpreal frame) {
   float currentX = 0.0f;
   float currentZ = 0.0f;
 
+  std::random_device rd;
+  std::mt19937 mt(rd());
+  std::mt19937 mt2(rd());
+  std::uniform_real_distribution<double> widthRandom(0.0, (width - 1) * xSpace);
+  std::uniform_real_distribution<double> heightRandom(0.0, (height - 1) * ySpace);
+
   int deployedAgents = 0;
 
   for (int w = 0; w < width; ++w) {
@@ -354,6 +407,25 @@ void AgentNode::initialize(fpreal frame) {
 
       float xTargetPos = target[0] + w * xSpace;
       float zTargetPos = target[1] + h * ySpace;
+
+      if (sampleShape == 0) {
+        if (sampleMethod == 1) {
+          xPos = source[0] + widthRandom(mt);
+          zPos = source[1] + heightRandom(mt2);
+
+          xTargetPos = target[0] + widthRandom(mt);
+          zTargetPos = target[1] + heightRandom(mt2);
+        }
+      }
+      else if (sampleShape == 1) {
+        // Disc
+        UT_Vector2 res = squareToDiskConcentric(w / width, h / height);
+        xPos = source[0] + (res[0] * width);
+        zPos = source[1] + (res[1] * height);
+
+        xTargetPos = target[0] + (res[0] * width);
+        zTargetPos = target[1] + (res[1] * height);
+      }
 
       Agent newAgent;
 
