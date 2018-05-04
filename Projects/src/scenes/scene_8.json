@@ -1,0 +1,38 @@
+{
+  "agentGroups": [
+    {
+      "numAgents": 10,
+      "size": [ 5, 5 ],
+      "spacing": [ 1.5, 1.5 ],
+      "sourcePos": [ 5, 0.5 ],
+      "targetPos": [ -5, 0.5 ],
+      "mass": 1.0,
+      "radius": 0.5,
+      "sampler": "NONE",
+      "samplerShape": "SQUARE",
+      "debugColor":  [255, 0, 0]
+    },
+    {
+      "numAgents": 10,
+      "size": [ 5, 5 ],
+      "spacing": [ 1.5, 1.5 ],
+      "sourcePos": [ -5, 4 ],
+      "targetPos": [ 5, 4 ],
+      "mass": 1.0,
+      "radius": 0.5,
+      "sampler": "NONE",
+      "samplerShape": "SQUARE",
+      "debugColor":  [255, 0, 0]
+    }
+  ],
+
+  "colliders": [{
+    "origin": [0, 0],
+    "dimensions": [1, 4, 1],
+    "type": "box"
+  }, {
+    "origin": [0, 8],
+    "dimensions": [1, 4, 1],
+    "type": "box"
+  }]
+}
